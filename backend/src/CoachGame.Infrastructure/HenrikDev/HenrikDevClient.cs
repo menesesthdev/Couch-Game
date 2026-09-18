@@ -59,7 +59,10 @@ public class HenrikDevClient(HttpClient http, IMemoryCache cache, IOptions<Henri
 
             var maisRecente = dados.History.MaxBy(h => h.Date)!;
             var rank = new Rank((Tier)maisRecente.Tier.Id, Math.Max(0, maisRecente.Rr));
-            var partidas = dados.History.Select(h => new PartidaRR(h.Date, h.LastChange)).ToList();
+            var partidas = dados.History
+                .OrderByDescending(h => h.Date)
+                .Select(h => new PartidaRR(h.Date, h.LastChange, h.Map?.Name, (Tier)h.Tier.Id, h.Rr))
+                .ToList();
 
             return new PerfilValorant(dados.Account.Puuid, new RiotId(dados.Account.Name, dados.Account.Tag), rank, partidas);
         }

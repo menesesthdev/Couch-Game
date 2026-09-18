@@ -13,8 +13,11 @@ internal sealed record MmrAccount(string Name, string Tag, string Puuid);
 
 internal sealed record MmrHistoryEntry(
     MmrTier Tier,
+    MmrMap? Map,
     int Rr,
     [property: JsonPropertyName("last_change")] int LastChange,
     DateTimeOffset Date);
 
 internal sealed record MmrTier(int Id, string Name);
+
+internal sealed record MmrMap(string? Name);
