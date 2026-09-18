@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: coachgame-postgres
+    environment:
+      POSTGRES_DB: coachgame
+      POSTGRES_USER: coachgame
+      POSTGRES_PASSWORD: coachgame
+    ports:
+      - "5432:5432"
+    volumes:
+      - coachgame-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coachgame -d coachgame"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: ./backend
+    container_name: coachgame-api
+    environment:
+      ConnectionStrings__CoachGame: Host=postgres;Port=5432;Database=coachgame;Username=coachgame;Password=coachgame
+      HenrikDev__ApiKey: ${HENRIKDEV_API_KEY:-}
+      Banco__MigrarAoIniciar: "true"
+    ports:
+      - "5080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    build: ./frontend
+    container_name: coachgame-web
+    ports:
+      - "4200:80"
+    depends_on:
+      - api
+
+volumes:
+  coachgame-pgdata:
