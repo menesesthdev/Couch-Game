@@ -1,0 +1,131 @@
+<section class="card">
+  <h2 class="rotulo">Meta</h2>
+
+  @if (perfil().rankAtual.tier === 'Radiante') {
+    <p class="discreto">Já está no topo. Não há rank acima de Radiante.</p>
+  } @else {
+    <form class="meta" (ngSubmit)="calcular()">
+      <label class="campo">
+        <span>Chegar em</span>
+        <select name="rankAlvo" [ngModel]="rankAlvo()" (ngModelChange)="rankAlvo.set($event)">
+          @for (o of opcoesAlvo(); track o.tier) {
+            <option [value]="o.tier">{{ o.nome }}</option>
+          }
+        </select>
+      </label>
+      <label class="campo">
+        <span>até</span>
+        <input type="date" name="dataLimite" [min]="amanha" [ngModel]="dataLimite()" (ngModelChange)="dataLimite.set($event)" />
+      </label>
+      <button class="botao-primario" type="submit" [disabled]="carregando()">
+        {{ carregando() ? 'Calculando…' : 'Calcular' }}
+      </button>
+    </form>
+
+    @if (erro()) {
+      <p class="discreto">{{ erro() }}</p>
+    }
+
+    @if (resultado(); as r) {
+      <div class="resultado" [class.atualizando]="carregando()">
+        @if (r.rrFaltando === 0) {
+          <p class="manchete">Já está em {{ r.rankAlvo.nome }} ou acima.</p>
+        } @else {
+          <div class="manchete">
+            <span class="numero">{{ r.rrFaltando }} RR</span>
+            <span class="discreto">
+              para {{ r.rankAlvo.nome }} · prazo {{ r.dataLimite | date: "d 'de' MMM" }} ({{ dias(r.requisitos.diasAtePrazo) }})
+            </span>
+          </div>
+
+          <!-- Caminho divisão a divisão até a meta -->
+          <ol class="caminho">
+            @for (d of r.degraus; track d.rank.tier) {
+              <li>
+                <img [src]="iconeRank(d.rank.tier)" alt="" loading="lazy" />
+                <span class="nome">{{ d.rank.nome }}</span>
+                <span class="discreto">{{ d.rrFaltando }} RR</span>
+              </li>
+            }
+            <li class="alvo">
+              <img [src]="iconeRank(r.rankAlvo.tier)" alt="" loading="lazy" />
+              <span class="nome">{{ r.rankAlvo.nome }}</span>
+              <span class="discreto">meta</span>
+            </li>
+          </ol>
+
+          <div class="destaques">
+            <div class="destaque">
+              <span class="rotulo">No seu ritmo atual</span>
+              @if (real(); as c) {
+                @if (c.alcancavel) {
+                  <span class="numero">{{ c.partidasNecessarias }} partidas</span>
+                  <span class="discreto">
+                    ≈ {{ dias(c.diasEstimados) }} · por volta de {{ c.dataEstimada | date: "d 'de' MMM" }}
+                  </span>
+                  <span class="selo" [class]="status(c).classe">{{ status(c).texto }}</span>
+                } @else {
+                  <span class="numero">—</span>
+                  <span class="discreto">
+                    Com {{ r.perfil.desempenho.winRate | percent: '1.0-0' }} de vitórias, o saldo por partida é
+                    {{ c.rrMedioPorPartida | number: '1.0-1' }} RR.
+                  </span>
+                  <span class="selo ruim">Não sobe nesse ritmo</span>
+                }
+              } @else {
+                <span class="numero">—</span>
+                <span class="discreto">Sem partidas recentes para calcular seu ritmo.</span>
+              }
+            </div>
+
+            <div class="destaque">
+              <span class="rotulo">Para bater o prazo</span>
+              @if (r.requisitos.partidasPorDiaNecessarias !== null) {
+                <span class="numero">{{ r.requisitos.partidasPorDiaNecessarias | number: '1.0-1' }} partidas/dia</span>
+                <span class="discreto">mantendo seu win rate de {{ r.perfil.desempenho.winRate | percent: '1.0-0' }}</span>
+              }
+              @if (r.requisitos.winRateNecessario !== null) {
+                @if (r.requisitos.winRateNecessario <= 1) {
+                  <span [class.numero]="r.requisitos.partidasPorDiaNecessarias === null" [class.secundario]="r.requisitos.partidasPorDiaNecessarias !== null">
+                    {{ r.requisitos.winRateNecessario | percent: '1.0-0' }} de vitórias
+                  </span>
+                  <span class="discreto">jogando ~{{ (real()?.partidasPorDia ?? 3) | number: '1.0-1' }} partidas/dia</span>
+                } @else {
+                  <span class="discreto">
+                    Jogando ~{{ (real()?.partidasPorDia ?? 3) | number: '1.0-1' }} partidas/dia, nem vencendo todas dá tempo — aumente o ritmo.
+                  </span>
+                }
+              }
+            </div>
+          </div>
+
+          <h3 class="rotulo">Outros cenários por dia</h3>
+          <div class="cenarios">
+            @for (c of fixos(); track c.tipo) {
+              <div class="cenario">
+                <span class="titulo">{{ c.descricao }}</span>
+                <span class="discreto pequeno">
+                  {{ c.rrMedioPorPartida > 0 ? '+' : '' }}{{ c.rrMedioPorPartida | number: '1.0-1' }} RR por partida
+                </span>
+                @if (c.alcancavel) {
+                  <span class="numero">{{ dias(c.diasEstimados) }}</span>
+                  <span class="discreto pequeno">{{ c.partidasNecessarias }} partidas · {{ c.dataEstimada | date: "d 'de' MMM" }}</span>
+                } @else {
+                  <span class="numero">—</span>
+                  <span class="discreto pequeno">saldo negativo</span>
+                }
+                <span class="selo" [class]="status(c).classe">{{ status(c).texto }}</span>
+              </div>
+            }
+          </div>
+
+          @if (r.usouMediasPadrao) {
+            <p class="nota">Sem histórico suficiente: os cenários usam médias padrão de +20 / −18 RR.</p>
+          }
+        }
+
+        <p class="nota">{{ r.aviso }}</p>
+      </div>
+    }
+  }
+</section>
