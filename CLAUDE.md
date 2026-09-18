@@ -80,14 +80,18 @@ Documentação: https://docs.henrikdev.xyz — API comunitária não oficial, n�
 **Layout de tracker** (busca → página de perfil com estatísticas), **visual inspirado no ChatGPT** apenas nos componentes: formato de botões, campos em pílula, fontes, cantos arredondados e sombras suaves. Não é uma interface de chat — não usar bolhas de mensagem nem layout conversacional.
 
 - Páginas: home (título + busca grande centralizada) e perfil `/perfil/:regiao/:nome%23tag` (mesmo formato de URL do tracker.gg), com busca compacta na barra do topo
-- Perfil: cabeçalho (ícone do rank, Riot ID, chips), coluna lateral (rank atual com barra de progresso, desempenho recente) e coluna principal (meta/estimativa detalhada, partidas recentes)
+- Home: título, busca, buscas recentes clicáveis e "como funciona" em 3 passos
+- Perfil: cabeçalho (ícone do rank, Riot ID, chips) → painel da meta em largura total (resposta, caminho de divisões, o que precisa para o prazo, simulações) → "Seu desempenho recente" (rank atual, estatísticas, partidas recentes com "mostrar todas")
 - Busca com autocomplete: sugere jogadores já consultados (`GET /api/jogadores/busca`) + buscas recentes do navegador (localStorage). Não existe busca global de contas na Riot/HenrikDev — igual ao tracker.gg, só dá para sugerir quem já passou pela aplicação
-- Paleta neutra (branco/cinza-claro no tema claro); verde/vermelho dessaturados só para ganho/perda de RR e status
-- Cards brancos com sombra discreta, sem bordas duras; tipografia como principal hierarquia (tamanho/peso)
+- **Tema escuro único** (sem tema claro): fundo grafite, cards levemente mais claros, botão primário claro sobre escuro; verde/vermelho dessaturados só para ganho/perda de RR e status
+- Cards com contorno sutil em vez de bordas duras; tipografia como principal hierarquia (tamanho/peso)
+- **Intuitivo primeiro**: a resposta vem numa frase em linguagem direta ("No seu ritmo atual, você chega em X em cerca de N dias"), os detalhes depois. Evitar jargão na UI ("3V / 0D" → "Vencendo as 3"; ritmo < 1/dia → "1 partida a cada N dias")
+- Meta é uma frase editável ("Quero chegar em [rank] até [data]") que recalcula sozinha ao mudar — sem botão "Calcular"; selects em pílula sempre com seta (`.com-seta`)
+- "Como calculamos?" em `<details>` explica o método com os números do próprio jogador
 - Ícones de rank vêm de `media.valorant-api.com` (mesma numeração de tier da HenrikDev)
 - Nada de gráficos de BI; barras finas de progresso e pontos de forma (V/D) são o limite
 - Angular standalone components, signals, `rxResource`; sem estado global — estado local nos componentes
-- Tema claro e escuro via `prefers-color-scheme`; cores só por variáveis CSS em `src/styles.scss`, blocos compartilhados (`.card`, `.chip`, `.botao-*`) também lá
+- Cores só por variáveis CSS em `src/styles.scss`; blocos compartilhados (`.card`, `.chip`, `.botao-*`, `.com-seta`) também lá
 
 ## Comandos
 
