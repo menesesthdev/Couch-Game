@@ -1,0 +1,127 @@
+<div class="pagina">
+  @if (dados(); as p) {
+    <header class="cabecalho">
+      <img class="rank-grande" [src]="iconeRank(p.rankAtual.tier)" [alt]="p.rankAtual.nome" />
+      <div class="identidade">
+        <h1>{{ p.nome }}<span class="tag">#{{ p.tag }}</span></h1>
+        <div class="chips">
+          <span class="chip">{{ regiaoNome() }}</span>
+          <span class="chip">{{ p.rankAtual.nome }} · {{ p.rankAtual.rr }} RR</span>
+          <span class="discreto">Atualizado {{ p.atualizadoEm | tempoRelativo }}</span>
+        </div>
+      </div>
+      <button class="botao-secundario" type="button" (click)="perfil.reload()" [disabled]="perfil.isLoading()">
+        {{ perfil.isLoading() ? 'Atualizando…' : 'Atualizar' }}
+      </button>
+    </header>
+
+    <div class="grade">
+      <aside class="lateral">
+        <section class="card">
+          <h2 class="rotulo">Rank atual</h2>
+          <div class="rank-atual">
+            <img [src]="iconeRank(p.rankAtual.tier)" alt="" />
+            <div>
+              <div class="valor-grande">{{ p.rankAtual.nome }}</div>
+              <div class="discreto">{{ p.rankAtual.rr }} RR</div>
+            </div>
+          </div>
+          <div class="barra" role="progressbar" [attr.aria-valuenow]="p.rankAtual.rr" aria-valuemin="0" aria-valuemax="100">
+            <span [style.width.%]="p.progressoDivisao * 100"></span>
+          </div>
+          @if (proximaDivisao(); as proxima) {
+            <p class="discreto pequeno">{{ proxima.rr }} RR para {{ proxima.nome }}</p>
+          }
+        </section>
+
+        <section class="card">
+          <h2 class="rotulo">Desempenho recente</h2>
+          @if (p.desempenho.partidasAnalisadas > 0) {
+            <div class="winrate">
+              <span class="valor-grande">{{ p.desempenho.winRate | percent: '1.0-0' }}</span>
+              <span class="discreto">de vitórias</span>
+            </div>
+            <div class="divisao-vd" aria-hidden="true">
+              <span class="v" [style.flex]="p.desempenho.vitorias || 0.0001"></span>
+              <span class="d" [style.flex]="p.desempenho.derrotas || 0.0001"></span>
+            </div>
+            <dl class="estatisticas">
+              <div><dt>Vitórias / derrotas</dt><dd>{{ p.desempenho.vitorias }}V · {{ p.desempenho.derrotas }}D</dd></div>
+              <div><dt>RR médio por vitória</dt><dd class="pos">+{{ p.desempenho.rrMedioGanho | number: '1.0-1' }}</dd></div>
+              <div><dt>RR médio por derrota</dt><dd class="neg">−{{ p.desempenho.rrMedioPerdido | number: '1.0-1' }}</dd></div>
+              <div><dt>Partidas por dia</dt><dd>{{ p.desempenho.partidasPorDia | number: '1.0-1' }}</dd></div>
+              <div>
+                <dt>Saldo de RR</dt>
+                <dd [class.pos]="p.desempenho.saldoRR > 0" [class.neg]="p.desempenho.saldoRR < 0">
+                  {{ p.desempenho.saldoRR > 0 ? '+' : '' }}{{ p.desempenho.saldoRR }}
+                </dd>
+              </div>
+              <div><dt>Partidas analisadas</dt><dd>{{ p.desempenho.partidasAnalisadas }}</dd></div>
+            </dl>
+          } @else {
+            <p class="discreto">Sem partidas ranqueadas recentes.</p>
+          }
+        </section>
+      </aside>
+
+      <main class="principal">
+        <app-estimativa-painel [perfil]="p" />
+
+        <section class="card">
+          <div class="titulo-secao">
+            <h2 class="rotulo">Partidas recentes</h2>
+            @if (forma().length) {
+              <div class="forma" aria-label="Últimos resultados">
+                @for (f of forma(); track $index) {
+                  <span [class]="f.resultado" [title]="f.resultado"></span>
+                }
+              </div>
+            }
+          </div>
+
+          @if (p.partidas.length) {
+            <ul class="partidas">
+              @for (m of p.partidas; track m.data) {
+                <li [class]="m.resultado">
+                  <span class="marcador"></span>
+                  <div class="mapa">
+                    <span class="nome-mapa">{{ m.mapa ?? 'Competitivo' }}</span>
+                    <span class="discreto pequeno">{{ m.data | tempoRelativo }}</span>
+                  </div>
+                  @if (m.rankApos; as r) {
+                    <div class="rank-apos">
+                      <img [src]="iconeRank(r.tier)" alt="" loading="lazy" />
+                      <span class="discreto pequeno">{{ r.nome }} · {{ r.rr }} RR</span>
+                    </div>
+                  }
+                  <span class="variacao" [class.pos]="m.variacaoRR > 0" [class.neg]="m.variacaoRR < 0">
+                    {{ m.variacaoRR > 0 ? '+' : '' }}{{ m.variacaoRR }}
+                  </span>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="discreto">Nenhuma partida ranqueada recente.</p>
+          }
+        </section>
+      </main>
+    </div>
+  } @else if (perfil.error()) {
+    <div class="estado">
+      <h1>Perfil indisponível</h1>
+      <p class="discreto">{{ mensagemErro() }}</p>
+      <div class="acoes">
+        <button class="botao-secundario" type="button" (click)="perfil.reload()">Tentar de novo</button>
+        <a class="botao-primario" routerLink="/">Nova busca</a>
+      </div>
+    </div>
+  } @else {
+    <div class="esqueleto" aria-label="Carregando perfil">
+      <div class="linha cabeca"></div>
+      <div class="grade">
+        <div class="lateral"><div class="bloco"></div><div class="bloco alto"></div></div>
+        <div class="principal"><div class="bloco alto"></div><div class="bloco alto"></div></div>
+      </div>
+    </div>
+  }
+</div>
