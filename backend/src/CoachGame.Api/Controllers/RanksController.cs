@@ -11,5 +11,5 @@ public class RanksController : ControllerBase
     /// <summary>Lista de ranks para o seletor de meta.</summary>
     [HttpGet]
     public IEnumerable<RankDto> Listar() =>
-        Enum.GetValues<Tier>().Where(t => t.Ranqueado()).Select(t => new RankDto(t, t.NomeExibicao(), 0));
+        Enum.GetValues<Tier>().Where(t => t.Ranqueado()).Select(RankDto.De);
 }
