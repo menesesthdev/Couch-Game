@@ -38,7 +38,8 @@ Nomeie entidades de domínio em português, como nos projetos anteriores (`Pacie
 - `Jogador` — Riot ID (nome + tag + região), PUUID, rank/RR atuais
 - `SnapshotRR` — registro histórico de rank/RR em um instante (é o que alimenta win rate e médias reais)
 - `Meta` — rank-alvo + data-limite definidos pelo usuário
-- `CenarioEstimativa` — resultado do cálculo para uma combinação de vitórias/derrotas por dia
+- `CenarioEstimativa` — resultado do cálculo para um win rate (`Real` = desempenho atual; `Simulacao` = "e se você vencer X%?")
+- `AtoCompetitivo` — ato da temporada (nome, início, fim), usado como prazo padrão da meta
 - Value objects: `RiotId` (parse de `nome#tag` e link do tracker.gg), `Rank` (tier + RR), enum `Tier` (IDs iguais aos da HenrikDev: 3 = Ferro 1 … 27 = Radiante)
 - `CalculadoraEstimativa` — serviço de domínio com a regra central abaixo
 
@@ -47,7 +48,7 @@ Nomeie entidades de domínio em português, como nos projetos anteriores (`Pacie
 Sem formalismo matemático — é aritmética simples, não estatística pesada:
 
 1. Calcular quanto RR falta entre o RR atual e a meta (considerando também a troca de rank/divisão, não só o número de RR).
-2. Para cada cenário (3V/0D, 2V/1D, 1V/2D, e o real do histórico), calcular o RR médio ganho por partida jogada: `(vitórias × RR médio ganho) − (derrotas × RR médio perdido)`.
+2. Para cada cenário, calcular o saldo de RR por partida: `win rate × RR médio ganho − (1 − win rate) × RR médio perdido`. Cenários: o **real** (win rate do histórico) e **3 simulações** ("e se você vencer mais?") no mesmo ritmo de partidas/dia do jogador, começando no primeiro múltiplo de 5% acima tanto do win rate atual quanto do ponto de equilíbrio (`perda / (ganho + perda)`) — ou seja, **toda simulação sobe**. Não mostrar cenários em que o jogador nunca chega (o antigo 1V/2D foi removido por isso).
 3. Dividir o RR que falta pelo RR médio ganho por partida → partidas necessárias.
 4. Dividir partidas necessárias pelo ritmo de partidas por dia do jogador → dias estimados.
 5. O "cenário real" usa as médias calculadas a partir do `SnapshotRR` mais recente (win rate real, RR médio ganho/perdido reais, partidas/dia reais).
@@ -56,7 +57,9 @@ Sempre apresentar o resultado como estimativa, nunca como previsão exata — de
 
 Até Ascendente 3 cada divisão vale 100 RR. Do Imortal 1 em diante a HenrikDev devolve RR **acumulado** (ex.: Imortal 2 com 156 RR) e os cortes reais dependem do leaderboard; simplificação atual: Imortal 2, Imortal 3 e Radiante começam 100, 200 e 300 RR acima do Imortal 1 (ver `Rank`).
 
-Além dos cenários, a API devolve os **requisitos do prazo** (`RequisitosPrazo`): partidas/dia necessárias mantendo o win rate real e win rate necessário mantendo o ritmo real, e os **degraus** (RR que falta em cada divisão até a meta). Sem histórico recente, os cenários fixos usam médias padrão (+20 / −18) e o cenário real é omitido.
+Além dos cenários, a API devolve os **requisitos do prazo** (`RequisitosPrazo`): partidas/dia necessárias mantendo o win rate real e win rate necessário mantendo o ritmo real, e os **degraus** (RR que falta em cada divisão até a meta). Sem histórico recente, as simulações usam médias padrão (+20 / −18, 3 partidas/dia) e o cenário real é omitido.
+
+**Prazo padrão = final do ato atual.** O calendário vem de `valorant-api.com/v1/seasons` (sem chave, cache de 6 h; `ValorantApiCalendario`), exposto em `GET /api/calendario/ato-atual`. O fim do ato é em UTC (ex.: 14/10 00:00Z); a UI usa o último dia local antes disso (13/10 no Brasil). O usuário pode trocar para "Outra data".
 
 Refinamentos como RR médio caindo conforme o jogador sobe de elo são melhoria futura, não bloqueio para o MVP.
 
@@ -66,7 +69,7 @@ Documentação: https://docs.henrikdev.xyz — API comunitária não oficial, n�
 
 - Autenticação: chave de API simples no header `Authorization`, sem OAuth. Começar com chave **Basic** (30 req/min). Configurar via `dotnet user-secrets` ou variável `HenrikDev__ApiKey` — nunca commitar.
 - Endpoint em uso: `GET /valorant/v2/mmr-history/{region}/{platform}/{name}/{tag}` — uma chamada traz PUUID, rank atual (entrada mais recente) e, por partida, mapa, `last_change`, tier e RR após a partida. Formato conferido com dados reais.
-- Endpoints da nossa API: `GET /api/jogadores/perfil?perfil=&regiao=`, `GET /api/jogadores/busca?q=&regiao=`, `POST /api/estimativas`, `GET /api/ranks`.
+- Endpoints da nossa API: `GET /api/jogadores/perfil?perfil=&regiao=`, `GET /api/jogadores/busca?q=&regiao=`, `POST /api/estimativas`, `GET /api/calendario/ato-atual`, `GET /api/ranks`.
 - Endpoints relevantes (conferir a doc antes de implementar, os paths podem mudar entre versões):
   - MMR atual por `nome#tag` + região/plataforma
   - Histórico de MMR (`mmr-history`, e a variante `stored-mmr-history` que já vem persistida pelo lado deles — avaliar se reduz a necessidade de polling próprio)
@@ -85,11 +88,13 @@ Documentação: https://docs.henrikdev.xyz — API comunitária não oficial, n�
 - Busca com autocomplete: sugere jogadores já consultados (`GET /api/jogadores/busca`) + buscas recentes do navegador (localStorage). Não existe busca global de contas na Riot/HenrikDev — igual ao tracker.gg, só dá para sugerir quem já passou pela aplicação
 - **Tema escuro único** (sem tema claro): fundo grafite, cards levemente mais claros, botão primário claro sobre escuro; verde/vermelho dessaturados só para ganho/perda de RR e status
 - Cards com contorno sutil em vez de bordas duras; tipografia como principal hierarquia (tamanho/peso)
-- **Intuitivo primeiro**: a resposta vem numa frase em linguagem direta ("No seu ritmo atual, você chega em X em cerca de N dias"), os detalhes depois. Evitar jargão na UI ("3V / 0D" → "Vencendo as 3"; ritmo < 1/dia → "1 partida a cada N dias")
-- Meta é uma frase editável ("Quero chegar em [rank] até [data]") que recalcula sozinha ao mudar — sem botão "Calcular"; selects em pílula sempre com seta (`.com-seta`)
+- **Intuitivo primeiro**: a resposta vem numa frase em linguagem direta ("No seu ritmo atual, você chega em X em cerca de N dias"), os detalhes depois. Evitar jargão na UI (win rate como "Vencendo 75%" / "8 de cada 10 partidas"; ritmo < 1/dia → "1 partida a cada N dias")
+- Meta é uma frase editável ("Quero chegar em [rank] até [Final do ato | Outra data]") que recalcula sozinha ao mudar — sem botão "Calcular"; "Final do ato" vem pré-selecionado; selects em pílula sempre com seta (`.com-seta`)
+- A resposta responde **quando**: data estimada de chegada na frase, selo "N dias antes/depois do fim do ato" e uma **linha do tempo** (hoje → prazo, com o ícone do rank-alvo na data estimada; vermelho se passar do prazo)
+- Logo do projeto no canto superior esquerdo (`public/logo.png`, recortada de `assets/images/`), no lugar do nome
 - "Como calculamos?" em `<details>` explica o método com os números do próprio jogador
 - Ícones de rank vêm de `media.valorant-api.com` (mesma numeração de tier da HenrikDev)
-- Nada de gráficos de BI; barras finas de progresso e pontos de forma (V/D) são o limite
+- Nada de gráficos de BI; barras finas de progresso, a linha do tempo da meta e pontos de forma (V/D) são o limite
 - Angular standalone components, signals, `rxResource`; sem estado global — estado local nos componentes
 - Cores só por variáveis CSS em `src/styles.scss`; blocos compartilhados (`.card`, `.chip`, `.botao-*`, `.com-seta`) também lá
 
