@@ -1,17 +1,27 @@
-// Paleta neutra estilo ChatGPT: hierarquia por tipografia, não por cor.
+// Visual inspirado no ChatGPT (formas, tipografia, sombras suaves) aplicado a um layout de tracker.
+// Paleta neutra: hierarquia por tamanho/peso da fonte. Verde/vermelho só para ganho/perda de RR, dessaturados.
 :root {
   --bg: #ffffff;
-  --surface: #f7f7f8;
-  --surface-strong: #ececec;
+  --surface: #f4f4f5;
+  --surface-strong: #e8e8ea;
+  --card: #ffffff;
+  --divider: rgb(0 0 0 / 6%);
   --text: #0d0d0d;
-  --text-muted: #6b6b6b;
-  --text-faint: #9b9b9b;
+  --text-muted: #5f5f63;
+  --text-faint: #9a9a9f;
+  --pos: #2f8a5b;
+  --neg: #c4524f;
+  --pos-soft: rgb(47 138 91 / 10%);
+  --neg-soft: rgb(196 82 79 / 10%);
   --composer-bg: #ffffff;
   --composer-shadow: 0 0 0 1px rgb(0 0 0 / 6%), 0 4px 16px rgb(0 0 0 / 6%);
+  --composer-shadow-focus: 0 0 0 1px rgb(0 0 0 / 10%), 0 6px 20px rgb(0 0 0 / 8%);
+  --popover-shadow: 0 0 0 1px rgb(0 0 0 / 6%), 0 12px 32px rgb(0 0 0 / 10%);
+  --card-shadow: 0 0 0 1px rgb(0 0 0 / 5%), 0 1px 3px rgb(0 0 0 / 4%);
   --button-bg: #0d0d0d;
   --button-text: #ffffff;
   --radius-lg: 28px;
-  --radius-md: 18px;
+  --radius-md: 20px;
   --radius-sm: 12px;
 
   color-scheme: light dark;
@@ -19,14 +29,23 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #212121;
-    --surface: #2a2a2a;
-    --surface-strong: #303030;
+    --bg: #1b1b1c;
+    --surface: #262628;
+    --surface-strong: #333336;
+    --card: #212123;
+    --divider: rgb(255 255 255 / 6%);
     --text: #ececec;
-    --text-muted: #a3a3a3;
-    --text-faint: #7a7a7a;
-    --composer-bg: #303030;
-    --composer-shadow: 0 0 0 1px rgb(255 255 255 / 4%), 0 4px 16px rgb(0 0 0 / 25%);
+    --text-muted: #a6a6ab;
+    --text-faint: #75757a;
+    --pos: #5cb887;
+    --neg: #e07a76;
+    --pos-soft: rgb(92 184 135 / 12%);
+    --neg-soft: rgb(224 122 118 / 12%);
+    --composer-bg: #2a2a2c;
+    --composer-shadow: 0 0 0 1px rgb(255 255 255 / 5%), 0 4px 16px rgb(0 0 0 / 30%);
+    --composer-shadow-focus: 0 0 0 1px rgb(255 255 255 / 10%), 0 6px 20px rgb(0 0 0 / 35%);
+    --popover-shadow: 0 0 0 1px rgb(255 255 255 / 6%), 0 12px 32px rgb(0 0 0 / 45%);
+    --card-shadow: 0 0 0 1px rgb(255 255 255 / 5%);
     --button-bg: #ececec;
     --button-text: #0d0d0d;
   }
@@ -36,15 +55,85 @@
 
 html, body {
   margin: 0;
-  height: 100%;
+  min-height: 100%;
   background: var(--bg);
   color: var(--text);
   font-family: ui-sans-serif, -apple-system, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: 16px;
-  line-height: 1.6;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
 }
 
 button, input, select { font: inherit; color: inherit; }
 
 ::selection { background: var(--surface-strong); }
+
+// ---- Blocos compartilhados entre páginas ----
+
+.card {
+  padding: 20px 22px;
+  background: var(--card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--card-shadow);
+}
+
+.rotulo {
+  margin: 0 0 14px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.valor-grande {
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.discreto { color: var(--text-muted); }
+
+.pos { color: var(--pos); }
+.neg { color: var(--neg); }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--surface);
+  font-weight: 500;
+}
+
+.botao-primario, .botao-secundario {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s ease, background 0.15s ease;
+
+  &:disabled { opacity: 0.4; cursor: default; }
+}
+
+.botao-primario {
+  background: var(--button-bg);
+  color: var(--button-text);
+
+  &:hover:not(:disabled) { opacity: 0.85; }
+}
+
+.botao-secundario {
+  background: var(--surface);
+  color: var(--text);
+
+  &:hover:not(:disabled) { background: var(--surface-strong); }
+}
