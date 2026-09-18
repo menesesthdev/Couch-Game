@@ -15,6 +15,9 @@
       </button>
     </header>
 
+    <app-estimativa-painel [perfil]="p" />
+
+    <h2 class="titulo-pagina">Seu desempenho recente</h2>
     <div class="grade">
       <aside class="lateral">
         <section class="card">
@@ -35,7 +38,7 @@
         </section>
 
         <section class="card">
-          <h2 class="rotulo">Desempenho recente</h2>
+          <h2 class="rotulo">Últimas {{ p.desempenho.partidasAnalisadas }} partidas</h2>
           @if (p.desempenho.partidasAnalisadas > 0) {
             <div class="winrate">
               <span class="valor-grande">{{ p.desempenho.winRate | percent: '1.0-0' }}</span>
@@ -46,17 +49,16 @@
               <span class="d" [style.flex]="p.desempenho.derrotas || 0.0001"></span>
             </div>
             <dl class="estatisticas">
-              <div><dt>Vitórias / derrotas</dt><dd>{{ p.desempenho.vitorias }}V · {{ p.desempenho.derrotas }}D</dd></div>
-              <div><dt>RR médio por vitória</dt><dd class="pos">+{{ p.desempenho.rrMedioGanho | number: '1.0-1' }}</dd></div>
-              <div><dt>RR médio por derrota</dt><dd class="neg">−{{ p.desempenho.rrMedioPerdido | number: '1.0-1' }}</dd></div>
+              <div><dt>Vitórias e derrotas</dt><dd>{{ p.desempenho.vitorias }} V · {{ p.desempenho.derrotas }} D</dd></div>
+              <div><dt>Ganha por vitória <small>em média</small></dt><dd class="pos">+{{ p.desempenho.rrMedioGanho | number: '1.0-1' }} RR</dd></div>
+              <div><dt>Perde por derrota <small>em média</small></dt><dd class="neg">−{{ p.desempenho.rrMedioPerdido | number: '1.0-1' }} RR</dd></div>
               <div><dt>Partidas por dia</dt><dd>{{ p.desempenho.partidasPorDia | number: '1.0-1' }}</dd></div>
               <div>
-                <dt>Saldo de RR</dt>
+                <dt>Saldo no período</dt>
                 <dd [class.pos]="p.desempenho.saldoRR > 0" [class.neg]="p.desempenho.saldoRR < 0">
-                  {{ p.desempenho.saldoRR > 0 ? '+' : '' }}{{ p.desempenho.saldoRR }}
+                  {{ p.desempenho.saldoRR > 0 ? '+' : '' }}{{ p.desempenho.saldoRR }} RR
                 </dd>
               </div>
-              <div><dt>Partidas analisadas</dt><dd>{{ p.desempenho.partidasAnalisadas }}</dd></div>
             </dl>
           } @else {
             <p class="discreto">Sem partidas ranqueadas recentes.</p>
@@ -65,7 +67,6 @@
       </aside>
 
       <main class="principal">
-        <app-estimativa-painel [perfil]="p" />
 
         <section class="card">
           <div class="titulo-secao">
@@ -81,13 +82,14 @@
 
           @if (p.partidas.length) {
             <ul class="partidas">
-              @for (m of p.partidas; track m.data) {
+              @for (m of partidasVisiveis(); track m.data) {
                 <li [class]="m.resultado">
                   <span class="marcador"></span>
                   <div class="mapa">
                     <span class="nome-mapa">{{ m.mapa ?? 'Competitivo' }}</span>
-                    <span class="discreto pequeno">{{ m.data | tempoRelativo }}</span>
-                  </div>
+                    <span class="resultado-texto">{{ m.resultado === 'Vitoria' ? 'Vitória' : m.resultado === 'Derrota' ? 'Derrota' : 'Empate' }}</span>
+                    </div>
+                  <span class="quando discreto pequeno">{{ m.data | tempoRelativo }}</span>
                   @if (m.rankApos; as r) {
                     <div class="rank-apos">
                       <img [src]="iconeRank(r.tier)" alt="" loading="lazy" />
@@ -100,6 +102,11 @@
                 </li>
               }
             </ul>
+            @if (p.partidas.length > limitePartidas) {
+              <button class="botao-secundario mais" type="button" (click)="todasPartidas.set(!todasPartidas())">
+                {{ todasPartidas() ? 'Mostrar menos' : 'Mostrar todas (' + p.partidas.length + ')' }}
+              </button>
+            }
           } @else {
             <p class="discreto">Nenhuma partida ranqueada recente.</p>
           }

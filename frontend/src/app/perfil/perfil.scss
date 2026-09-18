@@ -48,6 +48,13 @@
   }
 }
 
+.titulo-pagina {
+  margin: 44px 0 16px;
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
 .grade {
   display: grid;
   grid-template-columns: 320px minmax(0, 1fr);
@@ -126,6 +133,7 @@
   }
 
   dt { color: var(--text-muted); font-size: 0.875rem; }
+  dt small { display: block; font-size: 0.75rem; color: var(--text-faint); }
   dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
 }
 
@@ -189,6 +197,8 @@
   }
 
   .nome-mapa { font-weight: 500; }
+  .resultado-texto { font-size: 0.8125rem; color: var(--text-muted); }
+  .quando { min-width: 64px; text-align: right; }
 
   .rank-apos {
     display: flex;
@@ -206,8 +216,13 @@
   }
 
   @media (max-width: 520px) {
-    .rank-apos span { display: none; }
+    .rank-apos span, .quando { display: none; }
   }
+}
+
+.mais {
+  width: 100%;
+  margin-top: 12px;
 }
 
 .estado {

@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input } from '@angular/core';
+import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { DecimalPipe, PercentPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -46,6 +46,13 @@ export class PerfilPage {
     const i = TIERS.indexOf(p.rankAtual.tier as (typeof TIERS)[number]);
     if (i < 0 || i === TIERS.length - 1) return null;
     return { nome: nomeTier(TIERS[i + 1]), rr: p.rrParaProximaDivisao };
+  });
+
+  protected readonly limitePartidas = 8;
+  protected readonly todasPartidas = signal(false);
+  protected readonly partidasVisiveis = computed(() => {
+    const todas = this.dados()?.partidas ?? [];
+    return this.todasPartidas() ? todas : todas.slice(0, this.limitePartidas);
   });
 
   /** Últimos 10 resultados, do mais antigo para o mais recente (leitura da esquerda para a direita). */
