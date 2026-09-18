@@ -1,0 +1,50 @@
+// Paleta neutra estilo ChatGPT: hierarquia por tipografia, não por cor.
+:root {
+  --bg: #ffffff;
+  --surface: #f7f7f8;
+  --surface-strong: #ececec;
+  --text: #0d0d0d;
+  --text-muted: #6b6b6b;
+  --text-faint: #9b9b9b;
+  --composer-bg: #ffffff;
+  --composer-shadow: 0 0 0 1px rgb(0 0 0 / 6%), 0 4px 16px rgb(0 0 0 / 6%);
+  --button-bg: #0d0d0d;
+  --button-text: #ffffff;
+  --radius-lg: 28px;
+  --radius-md: 18px;
+  --radius-sm: 12px;
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #212121;
+    --surface: #2a2a2a;
+    --surface-strong: #303030;
+    --text: #ececec;
+    --text-muted: #a3a3a3;
+    --text-faint: #7a7a7a;
+    --composer-bg: #303030;
+    --composer-shadow: 0 0 0 1px rgb(255 255 255 / 4%), 0 4px 16px rgb(0 0 0 / 25%);
+    --button-bg: #ececec;
+    --button-text: #0d0d0d;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, -apple-system, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input, select { font: inherit; color: inherit; }
+
+::selection { background: var(--surface-strong); }
