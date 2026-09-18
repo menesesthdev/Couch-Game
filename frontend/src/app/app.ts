@@ -9,7 +9,9 @@ import { BuscaJogador } from './busca/busca-jogador';
   imports: [RouterOutlet, RouterLink, BuscaJogador],
   template: `
     <header class="topo">
-      <a class="marca" routerLink="/">coachgame</a>
+      <a class="marca" routerLink="/" aria-label="coachgame — início">
+        <img src="logo.png" alt="coachgame" width="40" height="40" />
+      </a>
       @if (!naHome()) {
         <div class="busca"><app-busca-jogador [compacta]="true" /></div>
       }
@@ -40,11 +42,11 @@ import { BuscaJogador } from './busca/busca-jogador';
       backdrop-filter: blur(12px);
     }
     .marca {
-      font-size: 1.0625rem;
-      font-weight: 600;
-      letter-spacing: -0.02em;
-      color: var(--text);
-      text-decoration: none;
+      display: flex;
+      flex-shrink: 0;
+      transition: opacity 0.15s ease;
+      &:hover { opacity: 0.85; }
+      img { display: block; width: 40px; height: 40px; }
     }
     .busca {
       flex: 1;
