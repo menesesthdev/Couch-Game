@@ -1,54 +1,31 @@
-// Visual inspirado no ChatGPT (formas, tipografia, sombras suaves) aplicado a um layout de tracker.
-// Paleta neutra: hierarquia por tamanho/peso da fonte. Verde/vermelho só para ganho/perda de RR, dessaturados.
+// Tema escuro único. Visual inspirado no ChatGPT (formas, tipografia, sombras suaves)
+// aplicado a um layout de tracker. Hierarquia por tamanho/peso da fonte; verde/vermelho
+// dessaturados só para ganho/perda de RR e status.
 :root {
-  --bg: #ffffff;
-  --surface: #f4f4f5;
-  --surface-strong: #e8e8ea;
-  --card: #ffffff;
-  --divider: rgb(0 0 0 / 6%);
-  --text: #0d0d0d;
-  --text-muted: #5f5f63;
-  --text-faint: #9a9a9f;
-  --pos: #2f8a5b;
-  --neg: #c4524f;
-  --pos-soft: rgb(47 138 91 / 10%);
-  --neg-soft: rgb(196 82 79 / 10%);
-  --composer-bg: #ffffff;
-  --composer-shadow: 0 0 0 1px rgb(0 0 0 / 6%), 0 4px 16px rgb(0 0 0 / 6%);
-  --composer-shadow-focus: 0 0 0 1px rgb(0 0 0 / 10%), 0 6px 20px rgb(0 0 0 / 8%);
-  --popover-shadow: 0 0 0 1px rgb(0 0 0 / 6%), 0 12px 32px rgb(0 0 0 / 10%);
-  --card-shadow: 0 0 0 1px rgb(0 0 0 / 5%), 0 1px 3px rgb(0 0 0 / 4%);
-  --button-bg: #0d0d0d;
-  --button-text: #ffffff;
+  --bg: #141416;
+  --card: #1c1c1f;
+  --surface: #252529;
+  --surface-strong: #303035;
+  --divider: rgb(255 255 255 / 6%);
+  --text: #ededed;
+  --text-muted: #a3a3aa;
+  --text-faint: #6e6e76;
+  --pos: #5cbf8a;
+  --neg: #e5807b;
+  --pos-soft: rgb(92 191 138 / 12%);
+  --neg-soft: rgb(229 128 123 / 12%);
+  --composer-bg: #232327;
+  --composer-shadow: 0 0 0 1px rgb(255 255 255 / 7%), 0 8px 24px rgb(0 0 0 / 35%);
+  --composer-shadow-focus: 0 0 0 1px rgb(255 255 255 / 16%), 0 8px 28px rgb(0 0 0 / 45%);
+  --popover-shadow: 0 0 0 1px rgb(255 255 255 / 8%), 0 16px 40px rgb(0 0 0 / 55%);
+  --card-shadow: 0 0 0 1px rgb(255 255 255 / 5%);
+  --button-bg: #ededed;
+  --button-text: #141416;
   --radius-lg: 28px;
   --radius-md: 20px;
   --radius-sm: 12px;
 
-  color-scheme: light dark;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #1b1b1c;
-    --surface: #262628;
-    --surface-strong: #333336;
-    --card: #212123;
-    --divider: rgb(255 255 255 / 6%);
-    --text: #ececec;
-    --text-muted: #a6a6ab;
-    --text-faint: #75757a;
-    --pos: #5cb887;
-    --neg: #e07a76;
-    --pos-soft: rgb(92 184 135 / 12%);
-    --neg-soft: rgb(224 122 118 / 12%);
-    --composer-bg: #2a2a2c;
-    --composer-shadow: 0 0 0 1px rgb(255 255 255 / 5%), 0 4px 16px rgb(0 0 0 / 30%);
-    --composer-shadow-focus: 0 0 0 1px rgb(255 255 255 / 10%), 0 6px 20px rgb(0 0 0 / 35%);
-    --popover-shadow: 0 0 0 1px rgb(255 255 255 / 6%), 0 12px 32px rgb(0 0 0 / 45%);
-    --card-shadow: 0 0 0 1px rgb(255 255 255 / 5%);
-    --button-bg: #ececec;
-    --button-text: #0d0d0d;
-  }
+  color-scheme: dark;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -136,4 +113,28 @@ button, input, select { font: inherit; color: inherit; }
   color: var(--text);
 
   &:hover:not(:disabled) { background: var(--surface-strong); }
+}
+
+// Seta de dropdown para selects em pílula (appearance: none remove a nativa).
+.com-seta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+
+  &::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    margin-left: 8px;
+    border-right: 1.5px solid var(--text-muted);
+    border-bottom: 1.5px solid var(--text-muted);
+    transform: translateY(-2px) rotate(45deg);
+    pointer-events: none;
+  }
+}
+
+input[type='date']::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.6;
+  cursor: pointer;
 }

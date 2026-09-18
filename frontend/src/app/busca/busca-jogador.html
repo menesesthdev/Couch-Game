@@ -18,7 +18,7 @@
     aria-controls="sugestoes"
   />
 
-  <label class="regiao">
+  <label class="regiao com-seta" title="Região da conta">
     <span class="sr-only">Região</span>
     <select [value]="regiao()" (change)="regiao.set($any($event.target).value)">
       @for (r of regioes; track r.valor) {

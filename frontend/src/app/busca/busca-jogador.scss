@@ -36,9 +36,13 @@ input {
   &::placeholder { color: var(--text-faint); }
 }
 
+.regiao {
+  &::after { position: absolute; right: 12px; }
+}
+
 .regiao select {
   height: 36px;
-  padding: 0 12px;
+  padding: 0 28px 0 12px;
   border: 0;
   border-radius: 999px;
   background: var(--surface);
