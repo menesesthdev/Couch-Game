@@ -1,118 +1,170 @@
 :host { display: block; }
 
-.meta {
+.painel { padding: 28px 30px; }
+
+@media (max-width: 600px) {
+  .painel { padding: 22px 20px; }
+}
+
+.pergunta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 10px;
+  font-size: 1.0625rem;
+  color: var(--text-muted);
 }
 
-.campo {
+.seletor {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  height: 40px;
-  padding: 0 14px;
+  height: 44px;
+  padding: 0 16px 0 12px;
   border-radius: 999px;
   background: var(--surface);
-  font-size: 0.875rem;
+  color: var(--text);
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
 
   &:hover { background: var(--surface-strong); }
+  &:focus-within { box-shadow: 0 0 0 2px var(--surface-strong); }
 
-  span { color: var(--text-muted); }
+  img { width: 26px; height: 26px; object-fit: contain; }
 
   select, input {
     border: 0;
     outline: 0;
     background: transparent;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
     appearance: none;
   }
+
+  select option { background: var(--card); }
 }
 
-.resultado {
-  margin-top: 24px;
+.calculando {
+  font-size: 0.875rem;
+  color: var(--text-faint);
+  animation: pulsar 1.2s ease-in-out infinite;
+}
+
+@keyframes pulsar {
+  50% { opacity: 0.4; }
+}
+
+.erro {
+  margin: 16px 0 0;
+  color: var(--neg);
+}
+
+.resposta {
+  margin-top: 28px;
   transition: opacity 0.2s ease;
 
-  &.atualizando { opacity: 0.5; }
+  &.atualizando { opacity: 0.55; }
 }
 
-.numero {
-  font-size: 1.375rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
+.frase {
+  margin: 0;
+  font-size: clamp(1.375rem, 3vw, 1.875rem);
+  font-weight: 500;
+  letter-spacing: -0.025em;
   line-height: 1.25;
+
+  strong { font-weight: 700; }
 }
 
-.manchete {
+.detalhe {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin: 0 0 20px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0 0;
+  color: var(--text-muted);
+}
 
-  .numero { font-size: 2.25rem; letter-spacing: -0.03em; }
+.bloco {
+  margin-top: 36px;
+
+  h3 {
+    margin: 0 0 14px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+  }
 }
 
 .caminho {
   display: flex;
+  align-items: center;
   gap: 6px;
-  margin: 0 0 24px;
+  margin: 0;
   padding: 0 0 4px;
   list-style: none;
   overflow-x: auto;
   scrollbar-width: thin;
 
-  li {
+  li:not(.seta) {
     flex-shrink: 0;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 2px;
-    min-width: 88px;
-    padding: 12px 10px;
-    border-radius: var(--radius-sm);
+    gap: 10px;
+    height: 52px;
+    padding: 0 16px 0 10px;
+    border-radius: 999px;
     background: var(--surface);
-    font-size: 0.75rem;
-    text-align: center;
+    white-space: nowrap;
   }
 
-  .alvo { background: var(--surface-strong); }
+  .alvo { box-shadow: inset 0 0 0 1px var(--text-faint); }
 
-  img { width: 32px; height: 32px; object-fit: contain; margin-bottom: 4px; }
+  .seta { color: var(--text-faint); font-size: 1.25rem; }
 
-  .nome { font-weight: 600; font-size: 0.8125rem; }
+  img { width: 30px; height: 30px; object-fit: contain; }
+  .nome { font-weight: 600; font-size: 0.875rem; }
+  .rr { font-size: 0.8125rem; color: var(--text-muted); }
 }
 
-.destaques {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.opcoes {
+  display: flex;
+  align-items: stretch;
   gap: 12px;
-  margin-bottom: 28px;
 
-  @media (max-width: 600px) { grid-template-columns: 1fr; }
+  @media (max-width: 640px) {
+    flex-direction: column;
+    .ou { align-self: center; }
+  }
 }
 
-.destaque {
+.opcao {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-  padding: 18px 20px;
+  padding: 20px 22px;
   border-radius: var(--radius-md);
   background: var(--surface);
+}
 
-  .rotulo { margin-bottom: 8px; }
+.ou {
+  align-self: center;
+  font-size: 0.875rem;
+  color: var(--text-faint);
+}
 
-  .secundario {
-    margin-top: 10px;
-    font-weight: 600;
-  }
+.valor {
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
 
-  .selo { margin-top: 12px; }
+.unidade { font-weight: 500; }
+
+.explica {
+  margin-top: 6px;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
 }
 
 .cenarios {
@@ -127,36 +179,71 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 2px;
-  padding: 16px 18px;
+  padding: 18px 20px;
   border-radius: var(--radius-md);
   box-shadow: inset 0 0 0 1px var(--divider);
 
-  .titulo { font-weight: 600; }
-  .numero { margin-top: 12px; font-size: 1.25rem; }
-  .selo { margin-top: 12px; }
+  .titulo { margin-bottom: 10px; font-size: 0.875rem; color: var(--text-muted); }
+  .valor { font-size: 1.375rem; }
+  .selo { margin-top: 14px; }
 }
-
-.pequeno { font-size: 0.8125rem; }
 
 .selo {
   display: inline-flex;
   align-items: center;
-  height: 24px;
+  height: 26px;
   padding: 0 10px;
   border-radius: 999px;
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
 
   &.bom { background: var(--pos-soft); color: var(--pos); }
   &.ruim { background: var(--neg-soft); color: var(--neg); }
   &.neutro { background: var(--surface-strong); color: var(--text-muted); }
 }
 
-.nota {
-  margin: 20px 0 0;
+.como {
+  margin-top: 32px;
+  padding: 14px 18px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 0.875rem;
+  color: var(--text-muted);
+
+  summary {
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  p { margin: 10px 0 0; }
+  strong { color: var(--text); font-weight: 600; }
+}
+
+.aviso {
+  margin: 16px 0 0;
   font-size: 0.8125rem;
   color: var(--text-faint);
+}
 
-  & + .nota { margin-top: 6px; }
+.esqueleto {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 28px;
+
+  .linha {
+    height: 20px;
+    width: 45%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--surface) 25%, var(--surface-strong) 50%, var(--surface) 75%);
+    background-size: 200% 100%;
+    animation: brilho 1.4s ease-in-out infinite;
+
+    &.longa { height: 32px; width: 80%; }
+  }
+}
+
+@keyframes brilho {
+  to { background-position: -200% 0; }
 }
