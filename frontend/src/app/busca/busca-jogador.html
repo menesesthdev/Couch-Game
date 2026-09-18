@@ -1,0 +1,76 @@
+<div class="caixa" [class.aberta]="aberta() && opcoes().length">
+  <svg class="lupa" width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+    <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.8" />
+    <path d="m14 14 3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+  </svg>
+
+  <input
+    [value]="termo()"
+    (input)="digitar($any($event.target).value)"
+    (focus)="aberta.set(true)"
+    (keydown)="teclar($event)"
+    [placeholder]="compacta() ? 'Buscar jogador' : 'Digite nome#tag ou cole o link do tracker.gg'"
+    autocomplete="off"
+    spellcheck="false"
+    role="combobox"
+    aria-label="Buscar jogador"
+    [attr.aria-expanded]="aberta()"
+    aria-controls="sugestoes"
+  />
+
+  <label class="regiao">
+    <span class="sr-only">Região</span>
+    <select [value]="regiao()" (change)="regiao.set($any($event.target).value)">
+      @for (r of regioes; track r.valor) {
+        <option [value]="r.valor">{{ r.nome }}</option>
+      }
+    </select>
+  </label>
+
+  @if (!compacta()) {
+    <button class="ir" type="button" (click)="confirmar()" [disabled]="!termo().trim()" aria-label="Buscar">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M4 10h12M16 10l-5-5M16 10l-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+    </button>
+  }
+
+  @if (aberta() && opcoes().length) {
+    <ul class="sugestoes" id="sugestoes" role="listbox">
+      @for (o of opcoes(); track o.origem + o.nome + o.tag; let i = $index) {
+        <li
+          role="option"
+          [class.ativa]="i === ativa()"
+          [attr.aria-selected]="i === ativa()"
+          (mouseenter)="ativa.set(i)"
+          (click)="abrir(o)"
+        >
+          @if (o.tier) {
+            <img class="icone" [src]="iconeRank(o.tier)" alt="" loading="lazy" />
+          } @else {
+            <span class="icone vazio">
+              @if (o.origem === 'direto') { → } @else { ↺ }
+            </span>
+          }
+          <span class="id">
+            <span class="nome">{{ o.nome }}</span><span class="tag">#{{ o.tag }}</span>
+          </span>
+          <span class="meta">
+            @switch (o.origem) {
+              @case ('direto') { Abrir perfil · {{ regiaoNome(o.regiao) }} }
+              @case ('recente') { Recente · {{ regiaoNome(o.regiao) }} }
+              @default { {{ nomeTier(o.tier!) }} · {{ o.rr }} RR }
+            }
+          </span>
+          @if (o.origem === 'recente') {
+            <button class="remover" type="button" (click)="removerRecente($event, o)" aria-label="Remover dos recentes">×</button>
+          }
+        </li>
+      }
+    </ul>
+  }
+</div>
+
+@if (erro()) {
+  <p class="erro">{{ erro() }}</p>
+}

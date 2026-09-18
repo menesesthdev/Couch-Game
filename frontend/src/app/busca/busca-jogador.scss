@@ -1,0 +1,167 @@
+:host {
+  display: block;
+  position: relative;
+  width: 100%;
+}
+
+.caixa {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 60px;
+  padding: 0 10px 0 20px;
+  background: var(--composer-bg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--composer-shadow);
+  transition: box-shadow 0.2s ease;
+
+  &:focus-within { box-shadow: var(--composer-shadow-focus); }
+}
+
+.lupa {
+  flex-shrink: 0;
+  color: var(--text-faint);
+}
+
+input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 1rem;
+
+  &::placeholder { color: var(--text-faint); }
+}
+
+.regiao select {
+  height: 36px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  appearance: none;
+  outline: 0;
+  transition: background 0.15s ease;
+
+  &:hover { background: var(--surface-strong); }
+}
+
+.ir {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--button-bg);
+  color: var(--button-text);
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+
+  &:disabled { opacity: 0.2; cursor: default; }
+}
+
+.sugestoes {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 10;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  text-align: left;
+  background: var(--composer-bg);
+  border-radius: var(--radius-md);
+  box-shadow: var(--popover-shadow);
+  animation: surgir 0.12s ease-out;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+
+    &.ativa { background: var(--surface); }
+  }
+
+  .icone {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    object-fit: contain;
+
+    &.vazio {
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--surface-strong);
+      color: var(--text-muted);
+      font-size: 0.875rem;
+    }
+  }
+
+  .id {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .nome { font-weight: 500; }
+  .tag { color: var(--text-faint); margin-left: 2px; }
+
+  .meta {
+    flex-shrink: 0;
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+  }
+
+  .remover {
+    width: 24px;
+    height: 24px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-faint);
+    cursor: pointer;
+
+    &:hover { background: var(--surface-strong); color: var(--text); }
+  }
+}
+
+.erro {
+  margin: 10px 0 0 20px;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+// Versão compacta, usada na barra do topo das páginas de perfil.
+:host(.compacta) {
+  .caixa { height: 44px; padding: 0 6px 0 16px; box-shadow: none; background: var(--surface); }
+  .caixa:focus-within { background: var(--composer-bg); box-shadow: var(--composer-shadow); }
+  .regiao select { height: 32px; background: var(--bg); }
+  .meta { display: none; }
+}
+
+@keyframes surgir {
+  from { opacity: 0; transform: translateY(-4px); }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
