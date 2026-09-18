@@ -1,6 +1,7 @@
 using CoachGame.Application.Portas;
 using CoachGame.Infrastructure.HenrikDev;
 using CoachGame.Infrastructure.Persistencia;
+using CoachGame.Infrastructure.ValorantApi;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,6 +33,10 @@ public static class DependencyInjection
                 o.Retry.MaxRetryAttempts = 2;
                 o.Retry.Delay = TimeSpan.FromSeconds(2);
             });
+
+        services.AddHttpClient<ICalendarioCompetitivo, ValorantApiCalendario>(http =>
+                http.BaseAddress = new Uri("https://valorant-api.com/"))
+            .AddStandardResilienceHandler();
 
         return services;
     }
