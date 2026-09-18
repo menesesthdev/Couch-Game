@@ -54,7 +54,9 @@ Sem formalismo matemático — é aritmética simples, não estatística pesada:
 
 Sempre apresentar o resultado como estimativa, nunca como previsão exata — deixar isso explícito na resposta da API e na UI.
 
-Simplificação atual: cada degrau (divisão) vale 100 RR, inclusive de Imortal para cima (no jogo real é RR acumulado + corte por leaderboard). Sem histórico recente, os cenários fixos usam médias padrão (+20 / −18) e o cenário real é omitido.
+Até Ascendente 3 cada divisão vale 100 RR. Do Imortal 1 em diante a HenrikDev devolve RR **acumulado** (ex.: Imortal 2 com 156 RR) e os cortes reais dependem do leaderboard; simplificação atual: Imortal 2, Imortal 3 e Radiante começam 100, 200 e 300 RR acima do Imortal 1 (ver `Rank`).
+
+Além dos cenários, a API devolve os **requisitos do prazo** (`RequisitosPrazo`): partidas/dia necessárias mantendo o win rate real e win rate necessário mantendo o ritmo real, e os **degraus** (RR que falta em cada divisão até a meta). Sem histórico recente, os cenários fixos usam médias padrão (+20 / −18) e o cenário real é omitido.
 
 Refinamentos como RR médio caindo conforme o jogador sobe de elo são melhoria futura, não bloqueio para o MVP.
 
@@ -63,7 +65,8 @@ Refinamentos como RR médio caindo conforme o jogador sobe de elo são melhoria 
 Documentação: https://docs.henrikdev.xyz — API comunitária não oficial, não afiliada à Riot Games.
 
 - Autenticação: chave de API simples no header `Authorization`, sem OAuth. Começar com chave **Basic** (30 req/min). Configurar via `dotnet user-secrets` ou variável `HenrikDev__ApiKey` — nunca commitar.
-- Endpoint em uso: `GET /valorant/v2/mmr-history/{region}/{platform}/{name}/{tag}` — uma chamada traz PUUID, rank atual (entrada mais recente) e a variação de RR (`last_change`) das partidas recentes.
+- Endpoint em uso: `GET /valorant/v2/mmr-history/{region}/{platform}/{name}/{tag}` — uma chamada traz PUUID, rank atual (entrada mais recente) e, por partida, mapa, `last_change`, tier e RR após a partida. Formato conferido com dados reais.
+- Endpoints da nossa API: `GET /api/jogadores/perfil?perfil=&regiao=`, `GET /api/jogadores/busca?q=&regiao=`, `POST /api/estimativas`, `GET /api/ranks`.
 - Endpoints relevantes (conferir a doc antes de implementar, os paths podem mudar entre versões):
   - MMR atual por `nome#tag` + região/plataforma
   - Histórico de MMR (`mmr-history`, e a variante `stored-mmr-history` que já vem persistida pelo lado deles — avaliar se reduz a necessidade de polling próprio)
@@ -74,16 +77,17 @@ Documentação: https://docs.henrikdev.xyz — API comunitária não oficial, n�
 
 ## Frontend — diretrizes de design
 
-Minimalista, estilo clean/soft — referência: layout do ChatGPT.
+**Layout de tracker** (busca → página de perfil com estatísticas), **visual inspirado no ChatGPT** apenas nos componentes: formato de botões, campos em pílula, fontes, cantos arredondados e sombras suaves. Não é uma interface de chat — não usar bolhas de mensagem nem layout conversacional.
 
-- Paleta neutra (branco/cinza-claro no tema claro), sem cores saturadas competindo por atenção
-- Bastante espaço em branco, uma coluna central, sem sidebars carregadas nesta fase
-- Cantos arredondados suaves, sombras discretas, sem bordas duras
-- Tipografia como elemento principal de hierarquia (tamanho/peso), não cor
-- Nada de gráficos ou dashboards "corporativos" — o objetivo é uma resposta simples e legível, não um painel de BI
-- Angular standalone components, sem estado global desnecessário para esta fase — estado local em signals
-- Layout conversacional: tela inicial com título + "composer" centralizados; após enviar, o pedido aparece como bolha à direita e a resposta como texto corrido (sem bolha), com o composer fixo embaixo
-- Tema claro e escuro via `prefers-color-scheme`; cores só por variáveis CSS em `src/styles.scss`
+- Páginas: home (título + busca grande centralizada) e perfil `/perfil/:regiao/:nome%23tag` (mesmo formato de URL do tracker.gg), com busca compacta na barra do topo
+- Perfil: cabeçalho (ícone do rank, Riot ID, chips), coluna lateral (rank atual com barra de progresso, desempenho recente) e coluna principal (meta/estimativa detalhada, partidas recentes)
+- Busca com autocomplete: sugere jogadores já consultados (`GET /api/jogadores/busca`) + buscas recentes do navegador (localStorage). Não existe busca global de contas na Riot/HenrikDev — igual ao tracker.gg, só dá para sugerir quem já passou pela aplicação
+- Paleta neutra (branco/cinza-claro no tema claro); verde/vermelho dessaturados só para ganho/perda de RR e status
+- Cards brancos com sombra discreta, sem bordas duras; tipografia como principal hierarquia (tamanho/peso)
+- Ícones de rank vêm de `media.valorant-api.com` (mesma numeração de tier da HenrikDev)
+- Nada de gráficos de BI; barras finas de progresso e pontos de forma (V/D) são o limite
+- Angular standalone components, signals, `rxResource`; sem estado global — estado local nos componentes
+- Tema claro e escuro via `prefers-color-scheme`; cores só por variáveis CSS em `src/styles.scss`, blocos compartilhados (`.card`, `.chip`, `.botao-*`) também lá
 
 ## Comandos
 
