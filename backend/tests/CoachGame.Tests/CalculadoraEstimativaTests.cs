@@ -83,4 +83,31 @@ public class CalculadoraEstimativaTests
 
         Assert.All(cenarios, c => Assert.Equal(0, c.PartidasNecessarias));
     }
+
+    [Fact]
+    public void Requisitos_calcula_ritmo_e_win_rate_para_bater_o_prazo()
+    {
+        var atual = new Rank(Tier.Ouro1, 0);
+        var meta = new Meta(Tier.Ouro2, Hoje.AddDays(5), Hoje);
+        // win rate 75%, +20 / −20 → 10 RR/partida; 2 partidas/dia
+        var s = Snapshot(atual, (1, 20), (1, 20), (0, 20), (0, -20));
+
+        var r = CalculadoraEstimativa.Requisitos(atual, meta, s, Hoje);
+
+        Assert.Equal(5, r.DiasAtePrazo);
+        Assert.Equal(10, r.PartidasNecessarias);
+        Assert.Equal(2, r.PartidasPorDiaNecessarias);
+        // 2 partidas/dia × 5 dias = 10 partidas → 10 RR/partida → w = (10 + 20) / 40 = 75%
+        Assert.Equal(0.75, r.WinRateNecessario);
+    }
+
+    [Fact]
+    public void Requisitos_indica_win_rate_acima_de_100_quando_o_prazo_e_curto_demais()
+    {
+        var atual = new Rank(Tier.Ouro1, 0);
+        var meta = new Meta(Tier.Platina1, Hoje.AddDays(1), Hoje);
+        var s = Snapshot(atual, (1, 20), (0, -20));
+
+        Assert.True(CalculadoraEstimativa.Requisitos(atual, meta, s, Hoje).WinRateNecessario > 1);
+    }
 }
