@@ -55,11 +55,12 @@ export interface Perfil {
   atualizadoEm: string;
 }
 
-export type TipoCenario = 'TresVitorias' | 'DuasVitorias' | 'UmaVitoria' | 'Real';
+export type TipoCenario = 'Real' | 'Simulacao';
 
 export interface Cenario {
   tipo: TipoCenario;
   descricao: string;
+  winRate: number;
   partidasPorDia: number;
   rrMedioPorPartida: number;
   alcancavel: boolean;
@@ -91,4 +92,10 @@ export interface EstimativaRequest {
   regiao: Regiao;
   rankAlvo: string;
   dataLimite: string; // yyyy-MM-dd
+}
+
+export interface AtoCompetitivo {
+  nome: string;
+  inicio: string;
+  fim: string;
 }

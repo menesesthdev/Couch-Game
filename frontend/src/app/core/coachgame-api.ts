@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, catchError, throwError } from 'rxjs';
-import { Estimativa, EstimativaRequest, Perfil, Regiao, SugestaoJogador } from './api.models';
+import { Observable, catchError, map, of, throwError } from 'rxjs';
+import { AtoCompetitivo, Estimativa, EstimativaRequest, Perfil, Regiao, SugestaoJogador } from './api.models';
 
 @Injectable({ providedIn: 'root' })
 export class CoachgameApi {
@@ -16,6 +16,14 @@ export class CoachgameApi {
   perfil(riotId: string, regiao: Regiao): Observable<Perfil> {
     const params = new HttpParams().set('perfil', riotId).set('regiao', regiao);
     return this.http.get<Perfil>('/api/jogadores/perfil', { params }).pipe(catchError(traduzirErro));
+  }
+
+  /** Ato em andamento, ou null entre atos / se o calendário estiver fora do ar. */
+  atoAtual(): Observable<AtoCompetitivo | null> {
+    return this.http.get<AtoCompetitivo | null>('/api/calendario/ato-atual').pipe(
+      map((ato) => ato ?? null),
+      catchError(() => of(null)),
+    );
   }
 
   estimar(request: EstimativaRequest): Observable<Estimativa> {

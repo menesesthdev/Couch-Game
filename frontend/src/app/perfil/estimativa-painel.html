@@ -16,13 +16,38 @@
         </select>
       </label>
       <span>até</span>
-      <label class="seletor">
-        <input type="date" aria-label="Data-limite" [min]="amanha" [value]="dataLimite()" (change)="mudarData($any($event.target).value)" />
-      </label>
+
+      <div class="prazo" role="radiogroup" aria-label="Prazo">
+        @if (fimDoAto(); as fim) {
+          <button type="button" role="radio" class="opcao-prazo" [class.ativa]="modoPrazo() === 'ato'"
+                  [attr.aria-checked]="modoPrazo() === 'ato'" (click)="usarFimDoAto()">
+            Final do ato <span class="data-ato">{{ fim | date: "d 'de' MMM" }}</span>
+          </button>
+        }
+        @if (modoPrazo() === 'data' || !fimDoAto()) {
+          <label class="opcao-prazo ativa data">
+            <input type="date" aria-label="Data-limite" [min]="amanha" [value]="dataEscolhida()"
+                   (change)="mudarData($any($event.target).value)" />
+          </label>
+        } @else {
+          <button type="button" role="radio" class="opcao-prazo" aria-checked="false" (click)="usarOutraData()">
+            Outra data
+          </button>
+        }
+      </div>
+
       @if (carregando()) {
         <span class="calculando" aria-live="polite">calculando…</span>
       }
     </div>
+
+    @if (ato.value(); as a) {
+      @if (fimDoAto(); as fim) {
+        <p class="info-ato">
+          O {{ a.nome }} termina em {{ fim | date: "d 'de' MMMM" }} — faltam {{ dias(diasAte(fim)) }}.
+        </p>
+      }
+    }
 
     @if (erro()) {
       <p class="erro">{{ erro() }}</p>
@@ -30,33 +55,55 @@
 
     @if (resultado(); as r) {
       <div class="resposta" [class.atualizando]="carregando()">
-        <!-- 1. A resposta direta -->
         @if (r.rrFaltando === 0) {
           <p class="frase">Você já está em <strong>{{ r.rankAlvo.nome }}</strong> ou acima. Escolha uma meta mais alta.</p>
         } @else {
+          <!-- 1. A resposta direta -->
           @if (real(); as c) {
             @if (c.alcancavel) {
               <p class="frase">
                 No seu ritmo atual, você chega em <strong>{{ r.rankAlvo.nome }}</strong>
-                em cerca de <strong>{{ dias(c.diasEstimados) }}</strong>.
+                por volta de <strong>{{ c.dataEstimada | date: "d 'de' MMMM" }}</strong>.
               </p>
               <p class="detalhe">
-                São ~{{ partidas(c.partidasNecessarias) }}, por volta de {{ c.dataEstimada | date: "d 'de' MMMM" }}.
+                Em cerca de {{ dias(c.diasEstimados) }}, jogando ~{{ partidas(c.partidasNecessarias) }}.
                 @if (folga(); as f) {
                   @if (f >= 0) {
-                    <span class="selo bom">{{ dias(f) }} antes do prazo</span>
+                    <span class="selo bom">{{ dias(f) }} antes do {{ nomePrazo() }}</span>
                   } @else {
-                    <span class="selo neutro">{{ dias(abs(f)) }} depois do prazo</span>
+                    <span class="selo ruim">{{ dias(abs(f)) }} depois do {{ nomePrazo() }}</span>
                   }
                 } @else {
-                  <span class="selo bom">No limite do prazo</span>
+                  <span class="selo bom">Bem no {{ nomePrazo() }}</span>
                 }
               </p>
+
+              <!-- Linha do tempo: hoje → prazo, com a chegada estimada -->
+              @if (linhaDoTempo(); as l) {
+                <div class="linha-tempo" [class.atrasado]="l.atrasado" aria-hidden="true">
+                  <div class="trilho">
+                    <span class="preenchido" [style.width.%]="l.chegada"></span>
+                    <span class="marca-prazo" [style.left.%]="l.prazo"></span>
+                    <span class="marca-chegada" [style.left.%]="l.chegada">
+                      <img [src]="iconeRank(r.rankAlvo.tier)" alt="" />
+                    </span>
+                  </div>
+                  <div class="rotulos">
+                    <span class="rotulo-chegada" [class]="l.alinharChegada" [style.left.%]="l.chegada">
+                      {{ r.rankAlvo.nome }} · {{ c.dataEstimada | date: "d MMM" }}
+                    </span>
+                    <span class="hoje">Hoje</span>
+                    <span class="rotulo-prazo" [class]="l.alinharPrazo" [style.left.%]="l.prazo">
+                      {{ nomePrazo() === 'fim do ato' ? 'Fim do ato' : 'Prazo' }} · {{ r.dataLimite | date: "d MMM" }}
+                    </span>
+                  </div>
+                </div>
+              }
             } @else {
               <p class="frase">No seu ritmo atual, você <strong>não sobe</strong> para {{ r.rankAlvo.nome }}.</p>
               <p class="detalhe">
                 Com {{ r.perfil.desempenho.winRate | percent: '1.0-0' }} de vitórias você perde, em média,
-                {{ abs(c.rrMedioPorPartida) | number: '1.0-1' }} RR por partida. Veja abaixo o que muda isso.
+                {{ abs(c.rrMedioPorPartida) | number: '1.0-1' }} RR por partida. Veja abaixo quanto precisa vencer para subir.
               </p>
             }
           } @else {
@@ -86,7 +133,7 @@
 
           <!-- 3. O que precisa para chegar no prazo -->
           <div class="bloco">
-            <h3>Para chegar até {{ r.dataLimite | date: "d 'de' MMMM" }} ({{ dias(r.requisitos.diasAtePrazo) }}), você pode:</h3>
+            <h3>Para chegar até o {{ nomePrazo() }} ({{ r.dataLimite | date: "d 'de' MMMM" }}), você pode:</h3>
             <div class="opcoes">
               @if (r.requisitos.partidasPorDiaNecessarias !== null) {
                 <div class="opcao">
@@ -117,25 +164,28 @@
             </div>
           </div>
 
-          <!-- 4. Simulações simples -->
-          <div class="bloco">
-            <h3>E se você jogar 3 partidas por dia?</h3>
-            <div class="cenarios">
-              @for (c of fixos(); track c.tipo) {
-                <div class="cenario">
-                  <span class="titulo">{{ titulo(c) }}</span>
-                  @if (c.alcancavel) {
-                    <span class="valor">{{ dias(c.diasEstimados) }}</span>
-                    <span class="explica">{{ partidas(c.partidasNecessarias) }} · {{ c.dataEstimada | date: "d 'de' MMM" }}</span>
-                  } @else {
-                    <span class="valor">—</span>
-                    <span class="explica">perde mais RR do que ganha</span>
-                  }
-                  <span class="selo" [class]="status(c).classe">{{ status(c).texto }}</span>
-                </div>
-              }
+          <!-- 4. Simulações: sempre win rates em que o jogador sobe -->
+          @if (simulacoes().length) {
+            <div class="bloco">
+              <h3>E se você vencer mais?</h3>
+              <p class="sub-bloco">Mantendo ~{{ simulacoes()[0].partidasPorDia | number: '1.0-1' }} partidas por dia.</p>
+              <div class="cenarios">
+                @for (c of simulacoes(); track c.winRate) {
+                  <div class="cenario">
+                    <span class="titulo">Vencendo {{ c.winRate | percent: '1.0-0' }}</span>
+                    @if (emPartidas(c.winRate); as texto) {
+                      <span class="explica sem-margem">{{ texto }}</span>
+                    }
+                    <span class="valor">{{ c.dataEstimada | date: "d 'de' MMM" }}</span>
+                    <span class="explica">{{ dias(c.diasEstimados) }} · {{ partidas(c.partidasNecessarias) }}</span>
+                    <span class="selo" [class]="c.dentroDoPrazo ? 'bom' : 'neutro'">
+                      {{ c.dentroDoPrazo ? 'Antes do ' + nomePrazo() : 'Depois do ' + nomePrazo() }}
+                    </span>
+                  </div>
+                }
+              </div>
             </div>
-          </div>
+          }
         }
 
         <details class="como">
@@ -148,14 +198,14 @@
             Dividimos o RR que falta pelo saldo médio por partida para chegar ao número de partidas, e pelo seu ritmo diário para chegar aos dias.
           </p>
           @if (r.usouMediasPadrao) {
-            <p>Como não há histórico suficiente, usamos médias gerais de +20 RR por vitória e −18 RR por derrota.</p>
+            <p>Como não há histórico suficiente, usamos médias gerais de +20 RR por vitória, −18 RR por derrota e 3 partidas por dia.</p>
           }
           <p>Do Imortal em diante os cortes dependem do ranking da região; aqui eles são aproximados.</p>
         </details>
 
         <p class="aviso">{{ r.aviso }}</p>
       </div>
-    } @else if (carregando()) {
+    } @else if (carregando() || ato.isLoading()) {
       <div class="esqueleto" aria-hidden="true">
         <span class="linha longa"></span>
         <span class="linha"></span>
