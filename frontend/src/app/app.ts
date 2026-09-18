@@ -1,55 +1,76 @@
-import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { DatePipe } from '@angular/common';
-import { catchError, of } from 'rxjs';
-import { Composer } from './composer/composer';
-import { Resposta } from './resposta/resposta';
-import { EstimativaService } from './estimativa/estimativa.service';
-import { EstimativaRequest, EstimativaResponse } from './estimativa/estimativa.models';
-
-interface Troca {
-  id: number;
-  pedido: EstimativaRequest;
-  rankAlvoNome: string;
-  resposta?: EstimativaResponse;
-  erro?: string;
-}
+import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
+import { filter, map } from 'rxjs';
+import { BuscaJogador } from './busca/busca-jogador';
 
 @Component({
   selector: 'app-root',
-  imports: [Composer, Resposta, DatePipe],
-  templateUrl: './app.html',
-  styleUrl: './app.scss',
+  imports: [RouterOutlet, RouterLink, BuscaJogador],
+  template: `
+    <header class="topo">
+      <a class="marca" routerLink="/">coachgame</a>
+      @if (!naHome()) {
+        <div class="busca"><app-busca-jogador [compacta]="true" /></div>
+      }
+    </header>
+
+    <router-outlet />
+
+    <footer class="rodape">
+      Dados públicos via HenrikDev API. O coachgame não é afiliado à Riot Games.
+    </footer>
+  `,
+  styles: `
+    :host {
+      display: flex;
+      flex-direction: column;
+      min-height: 100dvh;
+    }
+    .topo {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      height: 64px;
+      padding: 0 20px;
+      background: color-mix(in srgb, var(--bg) 88%, transparent);
+      backdrop-filter: blur(12px);
+    }
+    .marca {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .busca {
+      flex: 1;
+      min-width: 0;
+      max-width: 420px;
+      margin-left: auto;
+    }
+    @media (max-width: 520px) {
+      .topo { gap: 12px; padding: 0 12px; }
+    }
+    .rodape {
+      padding: 24px 16px 28px;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-faint);
+    }
+  `,
 })
 export class App {
-  private readonly service = inject(EstimativaService);
-  private readonly fim = viewChild<ElementRef<HTMLElement>>('fim');
-  private proximoId = 0;
+  private readonly router = inject(Router);
 
-  protected readonly ranks = toSignal(this.service.ranks().pipe(catchError(() => of([]))), { initialValue: [] });
-  protected readonly trocas = signal<Troca[]>([]);
-  protected readonly carregando = signal(false);
-
-  protected estimar(pedido: EstimativaRequest): void {
-    const id = ++this.proximoId;
-    const rankAlvoNome = this.ranks().find((r) => r.tier === pedido.rankAlvo)?.nome ?? pedido.rankAlvo;
-    this.trocas.update((t) => [...t, { id, pedido, rankAlvoNome }]);
-    this.carregando.set(true);
-    this.rolarParaFim();
-
-    this.service.estimar(pedido).subscribe({
-      next: (resposta) => this.concluir(id, { resposta }),
-      error: (e: Error) => this.concluir(id, { erro: e.message }),
-    });
-  }
-
-  private concluir(id: number, parcial: Partial<Troca>): void {
-    this.trocas.update((t) => t.map((x) => (x.id === id ? { ...x, ...parcial } : x)));
-    this.carregando.set(false);
-    this.rolarParaFim();
-  }
-
-  private rolarParaFim(): void {
-    setTimeout(() => this.fim()?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'end' }));
-  }
+  protected readonly naHome = toSignal(
+    this.router.events.pipe(
+      filter((e) => e instanceof NavigationEnd),
+      map(() => this.router.url === '/' || this.router.url === ''),
+    ),
+    { initialValue: true },
+  );
 }

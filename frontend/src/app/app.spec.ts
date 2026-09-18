@@ -1,22 +1,22 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { App } from './app';
+import { provideRouter } from '@angular/router';
+import { RouterTestingHarness } from '@angular/router/testing';
+import { routes } from './app.routes';
 
-describe('App', () => {
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [App],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
-    }).compileComponents();
+describe('Home', () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter(routes)],
+    });
   });
 
-  it('mostra a tela inicial com o composer', async () => {
-    const fixture = TestBed.createComponent(App);
-    await fixture.whenStable();
-    const el = fixture.nativeElement as HTMLElement;
+  it('mostra o título e o campo de busca', async () => {
+    const harness = await RouterTestingHarness.create('/');
+    const el = harness.routeNativeElement as HTMLElement;
 
     expect(el.querySelector('h1')?.textContent).toContain('próximo rank');
-    expect(el.querySelector('app-composer')).toBeTruthy();
+    expect(el.querySelector('app-busca-jogador input')).toBeTruthy();
   });
 });
