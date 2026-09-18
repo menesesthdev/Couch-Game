@@ -1,11 +1,16 @@
 namespace CoachGame.Domain.Estimativas;
 
-public enum TipoCenario { TresVitorias, DuasVitorias, UmaVitoria, Real }
+/// <summary>
+/// <see cref="Real"/>: desempenho atual do jogador. <see cref="Simulacao"/>: "e se você vencer X%?",
+/// no mesmo ritmo de partidas por dia — sempre com win rates em que o jogador sobe.
+/// </summary>
+public enum TipoCenario { Real, Simulacao }
 
 /// <summary>Resultado do cálculo para um cenário de desempenho. É uma estimativa, não uma previsão.</summary>
 public sealed record CenarioEstimativa(
     TipoCenario Tipo,
     string Descricao,
+    double WinRate,
     double PartidasPorDia,
     double RrMedioPorPartida,
     int? PartidasNecessarias,

@@ -12,7 +12,7 @@ public sealed record EstimativaRequest(
     [Required] DateOnly DataLimite);
 
 public sealed record CenarioDto(
-    TipoCenario Tipo, string Descricao, double PartidasPorDia, double RrMedioPorPartida,
+    TipoCenario Tipo, string Descricao, double WinRate, double PartidasPorDia, double RrMedioPorPartida,
     bool Alcancavel, int? PartidasNecessarias, int? DiasEstimados, DateOnly? DataEstimada, bool DentroDoPrazo);
 
 public sealed record DegrauDto(RankDto Rank, int RrFaltando);
@@ -39,7 +39,7 @@ public sealed record EstimativaResponse(
         r.Consulta.Perfil.RankAtual.DegrausAte(r.Meta.RankAlvo)
             .Select(d => new DegrauDto(RankDto.De(d.Tier), d.RrFaltando)).ToList(),
         r.UsouMediasPadrao,
-        r.Cenarios.Select(c => new CenarioDto(c.Tipo, c.Descricao, c.PartidasPorDia, c.RrMedioPorPartida,
+        r.Cenarios.Select(c => new CenarioDto(c.Tipo, c.Descricao, Math.Round(c.WinRate, 3), c.PartidasPorDia, c.RrMedioPorPartida,
             c.Alcancavel, c.PartidasNecessarias, c.DiasEstimados, c.DataEstimada, c.DentroDoPrazo)).ToList(),
         r.Requisitos,
         AvisoEstimativa);

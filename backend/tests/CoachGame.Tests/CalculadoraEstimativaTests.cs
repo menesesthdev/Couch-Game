@@ -25,23 +25,40 @@ public class CalculadoraEstimativaTests
     }
 
     [Fact]
-    public void Cenarios_fixos_usam_medias_reais()
+    public void Simulacoes_sempre_sobem_e_comecam_acima_do_win_rate_atual()
     {
         var atual = new Rank(Tier.Platina3, 65);
         var meta = new Meta(Tier.Ascendente1, new DateOnly(2026, 10, 14), Hoje);
+        // win rate 50%, +20 / −20, 2 partidas em 2 dias → 1 partida/dia
         var s = Snapshot(atual, (1, 20), (0, -20));
 
-        var cenarios = CalculadoraEstimativa.Calcular(atual, meta, s, Hoje);
+        var simulacoes = CalculadoraEstimativa.Calcular(atual, meta, s, Hoje)
+            .Where(c => c.Tipo == TipoCenario.Simulacao).ToList();
 
-        // 335 RR; 3V/0D = 20 RR/partida → 17 partidas → 6 dias
-        var tres = cenarios.Single(c => c.Tipo == TipoCenario.TresVitorias);
-        Assert.Equal(17, tres.PartidasNecessarias);
-        Assert.Equal(6, tres.DiasEstimados);
-        Assert.Equal(Hoje.AddDays(6), tres.DataEstimada);
-        Assert.True(tres.DentroDoPrazo);
+        Assert.Equal([0.55, 0.60, 0.65], simulacoes.Select(c => c.WinRate));
+        Assert.All(simulacoes, c => Assert.True(c.Alcancavel));
+        Assert.All(simulacoes, c => Assert.Equal(1, c.PartidasPorDia));
 
-        // 1V/2D: (20 − 40) / 3 < 0 → não sobe
-        Assert.False(cenarios.Single(c => c.Tipo == TipoCenario.UmaVitoria).Alcancavel);
+        // 60%: 0,6·20 − 0,4·20 = 4 RR/partida → 335 / 4 = 84 partidas → 84 dias
+        var sessenta = simulacoes[1];
+        Assert.Equal(4, sessenta.RrMedioPorPartida);
+        Assert.Equal(84, sessenta.PartidasNecessarias);
+        Assert.Equal(84, sessenta.DiasEstimados);
+        Assert.False(sessenta.DentroDoPrazo);
+    }
+
+    [Fact]
+    public void Simulacoes_pulam_win_rates_abaixo_do_equilibrio()
+    {
+        var atual = new Rank(Tier.Ouro1, 0);
+        var meta = new Meta(Tier.Ouro2, Hoje.AddDays(30), Hoje);
+        // ganha +10, perde −30 → só sobe acima de 75% de vitórias; win rate atual 25%
+        var s = Snapshot(atual, (0, 10), (0, -30), (0, -30), (0, -30));
+
+        var simulacoes = CalculadoraEstimativa.Calcular(atual, meta, s, Hoje)
+            .Where(c => c.Tipo == TipoCenario.Simulacao).ToList();
+
+        Assert.Equal([0.80, 0.85, 0.90], simulacoes.Select(c => c.WinRate));
     }
 
     [Fact]
@@ -69,8 +86,11 @@ public class CalculadoraEstimativaTests
         var cenarios = CalculadoraEstimativa.Calcular(atual, meta, Snapshot(atual), Hoje);
 
         Assert.DoesNotContain(cenarios, c => c.Tipo == TipoCenario.Real);
-        Assert.Equal(CalculadoraEstimativa.RrGanhoPadrao,
-            cenarios.Single(c => c.Tipo == TipoCenario.TresVitorias).RrMedioPorPartida);
+        // equilíbrio com +20 / −18 ≈ 47% → simulações em 50%, 55% e 60%, ritmo padrão de 3/dia
+        var cinquenta = cenarios.First(c => c.Tipo == TipoCenario.Simulacao);
+        Assert.Equal(0.5, cinquenta.WinRate);
+        Assert.Equal(1, cinquenta.RrMedioPorPartida);
+        Assert.Equal(CalculadoraEstimativa.PartidasPorDiaPadrao, cinquenta.PartidasPorDia);
     }
 
     [Fact]
