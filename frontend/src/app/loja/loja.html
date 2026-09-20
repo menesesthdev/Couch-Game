@@ -1,0 +1,217 @@
+<div class="pagina">
+  @if (!conectado()) {
+    <!-- Estado desconectado: explica o passo a passo estranho do redirect antes de pedir a URL. -->
+    <section class="conectar">
+      <header class="intro">
+        <h1>Sua loja do Valorant</h1>
+        <p>Suas 4 skins do dia, o mercado noturno e seu saldo — sem abrir o jogo.</p>
+      </header>
+
+      <aside class="nota-seguranca">
+        <svg class="cadeado" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="4.5" y="10.5" width="15" height="10" rx="2.5" fill="currentColor" />
+          <path d="M8 10.5V7.5a4 4 0 1 1 8 0v3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+        </svg>
+        <div>
+          <strong>Sua senha não passa por aqui.</strong>
+          <p>
+            Quem pede a senha é a própria Riot, na página oficial dela. O que você traz de volta é
+            só um código temporário de acesso, que vale cerca de 1 hora.
+          </p>
+        </div>
+      </aside>
+
+      <ol class="passos">
+        <li [class.ativa]="etapa() === 1" [class.feita]="etapa() > 1">
+          <button class="passo-topo" type="button" (click)="irPara(1)">
+            <span class="numero">1</span>
+            <span class="passo-titulo">Entrar na conta da Riot</span>
+          </button>
+          @if (etapa() === 1) {
+            <div class="passo-corpo">
+              <p>Abre a página oficial de login da Riot em outra aba.</p>
+              <button class="botao-primario" type="button" (click)="abrirLogin()">Abrir login da Riot</button>
+              <button class="link" type="button" (click)="irPara(3)">Já tenho o endereço copiado</button>
+            </div>
+          }
+        </li>
+
+        <li [class.ativa]="etapa() === 2" [class.feita]="etapa() > 2">
+          <button class="passo-topo" type="button" (click)="irPara(2)">
+            <span class="numero">2</span>
+            <span class="passo-titulo">Copiar o endereço da página de erro</span>
+          </button>
+          @if (etapa() === 2) {
+            <div class="passo-corpo">
+              <p>
+                Depois de entrar, o navegador tenta abrir <code>localhost</code> e mostra um erro.
+                <strong>Isso é esperado</strong> — o que importa está na barra de endereço:
+              </p>
+
+              <!-- Mostrar a barra vale mais que descrevê-la: é o passo em que todo mundo trava. -->
+              <figure class="navegador">
+                <div class="navegador-topo" aria-hidden="true">
+                  <span class="bolinha"></span><span class="bolinha"></span><span class="bolinha"></span>
+                </div>
+                <div class="barra-endereco">
+                  <span class="selecionado">http://localhost/redirect<b>#access_token=eyJhbGci…</b></span>
+                </div>
+                <div class="navegador-conteudo">
+                  <span class="erro-falso">Não foi possível acessar esse site</span>
+                </div>
+                <figcaption>
+                  Copie tudo, como está destacado acima. O pedaço depois do <code>#</code> é o que
+                  vale — e é justamente o que costuma ficar de fora.
+                </figcaption>
+              </figure>
+
+              <button class="botao-primario" type="button" (click)="irPara(3)">Copiei o endereço</button>
+            </div>
+          }
+        </li>
+
+        <li [class.ativa]="etapa() === 3">
+          <button class="passo-topo" type="button" (click)="irPara(3)">
+            <span class="numero">3</span>
+            <span class="passo-titulo">Colar aqui</span>
+          </button>
+          @if (etapa() === 3) {
+            <div class="passo-corpo">
+              <label class="rotulo-campo" for="url-redirect">Endereço copiado</label>
+              <input
+                id="url-redirect"
+                type="text"
+                class="campo"
+                placeholder="http://localhost/redirect#access_token=…"
+                autocomplete="off"
+                spellcheck="false"
+                [value]="urlColada()"
+                (input)="urlColada.set($any($event.target).value)"
+                (keydown.enter)="conectar()"
+              />
+
+              <div class="linha-final">
+                <label class="seletor com-seta">
+                  <select aria-label="Região da conta" [value]="regiao()" (change)="regiao.set($any($event.target).value)">
+                    @for (r of REGIOES; track r.valor) {
+                      <option [value]="r.valor">{{ r.nome }}</option>
+                    }
+                  </select>
+                </label>
+                <span class="discreto pequeno">a região onde você joga</span>
+                <button
+                  class="botao-primario"
+                  type="button"
+                  (click)="conectar()"
+                  [disabled]="!urlColada() || conectando()"
+                >
+                  {{ conectando() ? 'Conectando…' : 'Ver minha loja' }}
+                </button>
+              </div>
+
+              @if (erroConexao(); as erro) {
+                <p class="erro">{{ erro }}</p>
+              }
+            </div>
+          }
+        </li>
+      </ol>
+
+      <p class="rodape-nota discreto pequeno">
+        Esta parte conversa com os mesmos endereços que o cliente do jogo usa. Eles não são
+        documentados pela Riot para outros programas e podem parar de funcionar sem aviso.
+      </p>
+    </section>
+  } @else if (dados(); as l) {
+    <header class="cabecalho">
+      <div>
+        <h1>Sua loja</h1>
+        <p class="discreto">Renova em {{ restante(l.restanteDiariaEmSegundos) }}</p>
+      </div>
+      <div class="saldo">
+        <span class="chip">{{ l.carteira.valorantPoints | number }} VP</span>
+        <span class="chip">{{ l.carteira.radianite | number }} Radianite</span>
+        <button class="botao-secundario" type="button" (click)="desconectar()">Desconectar</button>
+      </div>
+    </header>
+
+    <section class="card">
+      <div class="titulo-secao">
+        <h2 class="rotulo">Hoje</h2>
+        <span class="discreto pequeno">{{ l.totalDiaria | number }} VP pelas quatro</span>
+      </div>
+      <div class="grade-skins">
+        @for (item of l.diaria; track item.id) {
+          <article class="skin">
+            @if (item.imagem) {
+              <img [src]="item.imagem" [alt]="item.nome" loading="lazy" />
+            }
+            <div class="skin-rodape">
+              <span class="skin-nome">{{ item.nome }}</span>
+              <span class="preco">{{ item.preco | number }} VP</span>
+            </div>
+          </article>
+        }
+      </div>
+    </section>
+
+    @if (l.mercadoNoturno.length) {
+      <section class="card">
+        <div class="titulo-secao">
+          <h2 class="rotulo">Mercado noturno</h2>
+          <span class="discreto pequeno">Acaba em {{ restante(l.restanteMercadoNoturnoEmSegundos) }}</span>
+        </div>
+        <div class="grade-skins">
+          @for (oferta of l.mercadoNoturno; track oferta.item.id) {
+            <article class="skin">
+              <span class="selo-desconto">−{{ oferta.descontoPercentual }}%</span>
+              @if (oferta.item.imagem) {
+                <img [src]="oferta.item.imagem" [alt]="oferta.item.nome" loading="lazy" />
+              }
+              <div class="skin-rodape">
+                <span class="skin-nome">{{ oferta.item.nome }}</span>
+                <span class="preco">
+                  <s class="discreto">{{ oferta.precoOriginal | number }}</s>
+                  {{ oferta.precoComDesconto | number }} VP
+                </span>
+              </div>
+            </article>
+          }
+        </div>
+      </section>
+    }
+
+    @for (bundle of l.bundles; track bundle.id) {
+      <section class="card">
+        <div class="titulo-secao">
+          <h2 class="rotulo">{{ bundle.nome }}</h2>
+          <span class="discreto pequeno">Sai em {{ restante(bundle.restanteEmSegundos) }}</span>
+        </div>
+        @if (bundle.imagem) {
+          <img class="bundle-arte" [src]="bundle.imagem" [alt]="bundle.nome" loading="lazy" />
+        }
+        <p class="preco-bundle">
+          {{ bundle.preco | number }} VP
+          @if (bundle.precoBase && bundle.precoBase > bundle.preco) {
+            <s class="discreto">{{ bundle.precoBase | number }}</s>
+          }
+          <span class="discreto pequeno">· {{ bundle.itens.length }} itens</span>
+        </p>
+      </section>
+    }
+  } @else if (loja.error()) {
+    <div class="estado">
+      <h1>Não deu para abrir sua loja</h1>
+      <p class="discreto">{{ mensagemErroLoja() }}</p>
+      <div class="acoes">
+        <button class="botao-secundario" type="button" (click)="loja.reload()">Tentar de novo</button>
+        <button class="botao-primario" type="button" (click)="desconectar()">Conectar de novo</button>
+      </div>
+    </div>
+  } @else {
+    <div class="esqueleto" aria-label="Carregando sua loja">
+      <div class="bloco cabeca"></div>
+      <div class="bloco alto"></div>
+    </div>
+  }
+</div>
