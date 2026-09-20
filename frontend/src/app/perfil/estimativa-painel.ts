@@ -2,7 +2,7 @@ import { Component, computed, effect, inject, input, signal, untracked } from '@
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe, DecimalPipe, PercentPipe } from '@angular/common';
 import { Subject, catchError, of, switchMap, tap } from 'rxjs';
-import { CoachgameApi } from '../core/coachgame-api';
+import { ValorantCoachApi } from '../core/valorant-coach-api';
 import { Estimativa, Perfil } from '../core/api.models';
 import { TIERS, iconeRank, nomeTier, proximoRank } from '../core/ranks';
 
@@ -39,7 +39,7 @@ type ModoPrazo = 'ato' | 'data';
 export class EstimativaPainel {
   readonly perfil = input.required<Perfil>();
 
-  private readonly api = inject(CoachgameApi);
+  private readonly api = inject(ValorantCoachApi);
   private readonly pedidos = new Subject<void>();
 
   protected readonly iconeRank = iconeRank;

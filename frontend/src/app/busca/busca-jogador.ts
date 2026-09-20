@@ -2,7 +2,7 @@ import { Component, ElementRef, computed, inject, input, signal } from '@angular
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { catchError, debounceTime, distinctUntilChanged, map, of, switchMap } from 'rxjs';
-import { CoachgameApi } from '../core/coachgame-api';
+import { ValorantCoachApi } from '../core/valorant-coach-api';
 import { BuscasRecentes } from '../core/buscas-recentes';
 import { REGIOES, Regiao } from '../core/api.models';
 import { iconeRank, nomeTier } from '../core/ranks';
@@ -33,7 +33,7 @@ interface Opcao {
 export class BuscaJogador {
   readonly compacta = input(false);
 
-  private readonly api = inject(CoachgameApi);
+  private readonly api = inject(ValorantCoachApi);
   private readonly recentes = inject(BuscasRecentes);
   private readonly router = inject(Router);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);

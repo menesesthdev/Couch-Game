@@ -20,11 +20,15 @@ services:
     build: ./backend
     container_name: coachgame-api
     environment:
-      ConnectionStrings__CoachGame: Host=postgres;Port=5432;Database=coachgame;Username=coachgame;Password=coachgame
+      ConnectionStrings__ValorantCoach: Host=postgres;Port=5432;Database=coachgame;Username=coachgame;Password=coachgame
       HenrikDev__ApiKey: ${HENRIKDEV_API_KEY:-}
       Banco__MigrarAoIniciar: "true"
     ports:
       - "5080:8080"
+    # O Docker herda o resolv.conf do host. Com uma VPN de DNS próprio (Tailscale/MagicDNS),
+    # vem junto um "search <dominio>" que transforma "postgres" em "postgres.<dominio>" e
+    # quebra a resolução dos nomes de serviço. O "." zera esse search sem afetar DNS externo.
+    dns_search: "."
     depends_on:
       postgres:
         condition: service_healthy
@@ -34,6 +38,7 @@ services:
     container_name: coachgame-web
     ports:
       - "4200:80"
+    dns_search: "."
     depends_on:
       - api
 

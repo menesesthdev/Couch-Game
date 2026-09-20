@@ -8,6 +8,8 @@ export interface BuscaRecente {
   tier?: string;
 }
 
+// Mantém o prefixo antigo do projeto de propósito: renomear a chave faria todo mundo
+// que já usou a aplicação perder as buscas recentes salvas no navegador.
 const CHAVE = 'coachgame.buscas-recentes';
 const MAXIMO = 6;
 

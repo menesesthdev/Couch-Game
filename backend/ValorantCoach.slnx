@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ValorantCoach.Api/ValorantCoach.Api.csproj" />
+    <Project Path="src/ValorantCoach.Application/ValorantCoach.Application.csproj" />
+    <Project Path="src/ValorantCoach.Domain/ValorantCoach.Domain.csproj" />
+    <Project Path="src/ValorantCoach.Infrastructure/ValorantCoach.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ValorantCoach.Tests/ValorantCoach.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,4 +1,4 @@
-# coachgame
+# Valorant Coach
 
 Estimador de progressão de rank para Valorant.
 
@@ -38,7 +38,7 @@ docker compose up -d --build
 
 - App: http://localhost:4200
 - API: http://localhost:5080
-- PostgreSQL: `localhost:5432` (usuário/senha/banco `coachgame`)
+- PostgreSQL: `localhost:5432` (usuário/senha/banco `coachgame`, nome antigo do projeto — mantido para não recriar o volume)
 
 ### Desenvolvimento (fora do Docker)
 
@@ -49,8 +49,8 @@ docker compose up -d postgres
 
 # backend — http://localhost:5080
 cd backend
-dotnet user-secrets set "HenrikDev:ApiKey" "sua-chave" --project src/CoachGame.Api
-dotnet run --project src/CoachGame.Api
+dotnet user-secrets set "HenrikDev:ApiKey" "sua-chave" --project src/ValorantCoach.Api
+dotnet run --project src/ValorantCoach.Api
 
 # frontend — http://localhost:4200 (pare o container "web" antes, usa a mesma porta)
 cd frontend && npm install && npm start

@@ -1,0 +1,15 @@
+using ValorantCoach.Api.Dtos;
+using ValorantCoach.Domain.Jogadores;
+using Microsoft.AspNetCore.Mvc;
+
+namespace ValorantCoach.Api.Controllers;
+
+[ApiController]
+[Route("api/ranks")]
+public class RanksController : ControllerBase
+{
+    /// <summary>Lista de ranks para o seletor de meta.</summary>
+    [HttpGet]
+    public IEnumerable<RankDto> Listar() =>
+        Enum.GetValues<Tier>().Where(t => t.Ranqueado()).Select(RankDto.De);
+}

@@ -6,7 +6,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "coachgame": {
+    "valorant-coach": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -61,10 +61,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "coachgame:build:production"
+              "buildTarget": "valorant-coach:build:production"
             },
             "development": {
-              "buildTarget": "coachgame:build:development"
+              "buildTarget": "valorant-coach:build:development"
             }
           },
           "defaultConfiguration": "development",
