@@ -17,7 +17,25 @@
 
     <app-estimativa-painel [perfil]="p" />
 
-    <h2 class="titulo-pagina">Seu desempenho recente</h2>
+    <div class="titulo-periodo">
+      <h2 class="titulo-pagina">Seu desempenho</h2>
+      <label class="seletor com-seta">
+        <select aria-label="Período analisado" [value]="periodo()" (change)="trocarPeriodo($any($event.target).value)">
+          <option value="Ultimas">Últimas 20 partidas</option>
+          <option value="AtoAtual">Todo o ato atual</option>
+        </select>
+      </label>
+    </div>
+    @if (analise(); as a) {
+      <p class="discreto pequeno legenda-periodo">
+        @if (a.periodo === 'AtoAtual' && a.ato) {
+          {{ a.ato.nome }} · {{ a.partidas.length === 1 ? '1 partida' : a.partidas.length + ' partidas' }} desde
+          {{ a.ato.inicio | date: "d 'de' MMMM" }}
+        } @else {
+          Suas {{ a.partidas.length }} partidas competitivas mais recentes
+        }
+      </p>
+    }
     <div class="grade">
       <aside class="lateral">
         <section class="card">
@@ -64,13 +82,85 @@
             <p class="discreto">Sem partidas ranqueadas recentes.</p>
           }
         </section>
+
+        @if (stats(); as s) {
+          <section class="card">
+            <h2 class="rotulo">Seu jogo</h2>
+
+            @if (s.sequencia; as seq) {
+              <span class="selo" [class.pos-forte]="seq.tipo === 'Vitoria'" [class.neg-forte]="seq.tipo === 'Derrota'">
+                {{ seq.quantidade }}
+                {{ seq.tipo === 'Vitoria' ? (seq.quantidade === 1 ? 'vitória' : 'vitórias') : (seq.quantidade === 1 ? 'derrota' : 'derrotas') }}
+                {{ seq.quantidade === 1 ? 'na última' : 'seguidas' }}
+              </span>
+            }
+
+            <p class="resumo-frase">
+              Venceu <strong>{{ s.vitorias }}</strong> das {{ s.partidasAnalisadas }} partidas.
+              <span class="discreto">{{ fraseVitorias(s) }}.</span>
+            </p>
+
+            <div class="metrica">
+              <div class="metrica-topo">
+                <span class="metrica-rotulo">Trocas</span>
+                <span class="metrica-valor">{{ s.kd | number: '1.1-2' }}</span>
+              </div>
+              <p class="metrica-frase">{{ fraseKd(s) }}</p>
+              <p class="metrica-detalhe discreto">
+                {{ s.abatesPorPartida | number: '1.0-1' }} abates e {{ s.mortesPorPartida | number: '1.0-1' }} mortes por partida
+              </p>
+            </div>
+
+            <div class="metrica">
+              <div class="metrica-topo">
+                <span class="metrica-rotulo">Mira</span>
+                <span class="metrica-valor">{{ s.taxaHeadshot | percent: '1.0-0' }}</span>
+              </div>
+              <p class="metrica-frase">{{ fraseHeadshot(s.taxaHeadshot) }} vai na cabeça</p>
+              <div class="barra fina" role="presentation">
+                <span [style.width.%]="s.taxaHeadshot * 100"></span>
+              </div>
+            </div>
+
+            <div class="metrica">
+              <div class="metrica-topo">
+                <span class="metrica-rotulo">Estrago</span>
+                <span class="metrica-valor">{{ s.danoPorRound | number: '1.0-0' }}</span>
+              </div>
+              <p class="metrica-frase">{{ fraseDano(s.danoPorRound) }}</p>
+              <p class="metrica-detalhe discreto">
+                {{ s.pontuacaoPorRound | number: '1.0-0' }} pontos de combate por round, o placar que o jogo mostra
+              </p>
+            </div>
+
+            @if (s.topAgentes.length) {
+              <h3 class="subrotulo">Quem você mais joga</h3>
+              <ul class="ranking">
+                @for (a of s.topAgentes; track a.agente.id) {
+                  <li>
+                    <img class="miniatura agente" [src]="iconeAgente(a.agente.id)" alt="" loading="lazy" />
+                    <div class="ranking-nome">
+                      <span>{{ a.agente.nome }}</span>
+                      <span class="discreto pequeno">{{ a.partidas === 1 ? '1 partida' : a.partidas + ' partidas' }}</span>
+                    </div>
+                    <div class="ranking-valor">
+                      <span [class.pos]="a.winRate >= 0.5" [class.neg]="a.winRate < 0.5">{{ a.winRate | percent: '1.0-0' }}</span>
+                      <span class="discreto pequeno">de vitórias</span>
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+          </section>
+        } @else if (desempenho.isLoading()) {
+          <section class="card"><h2 class="rotulo">Seu jogo</h2><p class="discreto">Carregando…</p></section>
+        }
       </aside>
 
       <main class="principal">
-
         <section class="card">
           <div class="titulo-secao">
-            <h2 class="rotulo">Partidas recentes</h2>
+            <h2 class="rotulo">Partidas</h2>
             @if (forma().length) {
               <div class="forma" aria-label="Últimos resultados">
                 @for (f of forma(); track $index) {
@@ -80,35 +170,70 @@
             }
           </div>
 
-          @if (p.partidas.length) {
+          @if (partidas().length) {
             <ul class="partidas">
-              @for (m of partidasVisiveis(); track m.data) {
+              @for (m of partidasVisiveis(); track m.matchId) {
                 <li [class]="m.resultado">
-                  <span class="marcador"></span>
-                  <div class="mapa">
-                    <span class="nome-mapa">{{ m.mapa ?? 'Competitivo' }}</span>
-                    <span class="resultado-texto">{{ m.resultado === 'Vitoria' ? 'Vitória' : m.resultado === 'Derrota' ? 'Derrota' : 'Empate' }}</span>
+                  <a class="linha abrivel" [routerLink]="['/partida', regiaoApi(), m.matchId]" [queryParams]="{ jogador: p.riotId }">
+                    @if (m.mapa; as mapa) {
+                      <span class="fundo" [style.background-image]="'url(' + fundoMapa(mapa.id) + ')'" aria-hidden="true"></span>
+                    }
+                    <span class="marcador"></span>
+
+                    @if (m.agente; as agente) {
+                      <img class="agente-partida" [src]="iconeAgente(agente.id)" [alt]="agente.nome" loading="lazy" />
+                    }
+
+                    <div class="mapa">
+                      <span class="nome-mapa">{{ m.mapa?.nome ?? 'Competitivo' }}</span>
+                      <span class="resultado-texto">
+                        {{ m.resultado === 'Vitoria' ? 'Vitória' : m.resultado === 'Derrota' ? 'Derrota' : 'Empate' }}
+                        {{ placar(m) }}
+                      </span>
                     </div>
-                  <span class="quando discreto pequeno">{{ m.data | tempoRelativo }}</span>
-                  @if (m.rankApos; as r) {
-                    <div class="rank-apos">
-                      <img [src]="iconeRank(r.tier)" alt="" loading="lazy" />
-                      <span class="discreto pequeno">{{ r.nome }} · {{ r.rr }} RR</span>
+
+                    <div class="kda">
+                      <span class="kda-numeros">
+                        {{ m.estatisticas.abates }} / {{ m.estatisticas.mortes }} / {{ m.estatisticas.assistencias }}
+                      </span>
+                      <span class="discreto pequeno">{{ m.estatisticas.taxaHeadshot | percent: '1.0-0' }} na cabeça</span>
                     </div>
-                  }
-                  <span class="variacao" [class.pos]="m.variacaoRR > 0" [class.neg]="m.variacaoRR < 0">
-                    {{ m.variacaoRR > 0 ? '+' : '' }}{{ m.variacaoRR }}
-                  </span>
+
+                    <span class="quando discreto pequeno">{{ m.data | tempoRelativo }}</span>
+
+                    @if (m.rankApos; as r) {
+                      <div class="rank-apos">
+                        <img [src]="iconeRank(r.tier)" alt="" loading="lazy" />
+                        <span class="discreto pequeno">{{ r.nome }}</span>
+                      </div>
+                    }
+
+                    <span class="variacao" [class.pos]="(m.variacaoRR ?? 0) > 0" [class.neg]="(m.variacaoRR ?? 0) < 0">
+                      @if (m.variacaoRR !== null) {
+                        {{ m.variacaoRR > 0 ? '+' : '' }}{{ m.variacaoRR }}
+                      } @else {
+                        <span class="discreto">—</span>
+                      }
+                    </span>
+                    <span class="seta" aria-hidden="true"></span>
+                  </a>
                 </li>
               }
             </ul>
-            @if (p.partidas.length > limitePartidas) {
+            @if (partidas().length > limitePartidas) {
               <button class="botao-secundario mais" type="button" (click)="todasPartidas.set(!todasPartidas())">
-                {{ todasPartidas() ? 'Mostrar menos' : 'Mostrar todas (' + p.partidas.length + ')' }}
+                {{ todasPartidas() ? 'Mostrar menos' : 'Mostrar todas (' + partidas().length + ')' }}
               </button>
             }
+          } @else if (desempenho.isLoading()) {
+            <p class="discreto">Carregando partidas…</p>
+          } @else if (desempenho.error()) {
+            <p class="discreto">{{ mensagemErroDesempenho() }}</p>
+            <button class="botao-secundario mais" type="button" (click)="desempenho.reload()">Tentar de novo</button>
           } @else {
-            <p class="discreto">Nenhuma partida ranqueada recente.</p>
+            <p class="discreto">
+              {{ periodo() === 'AtoAtual' ? 'Nenhuma partida competitiva neste ato ainda.' : 'Nenhuma partida competitiva recente.' }}
+            </p>
           }
         </section>
       </main>

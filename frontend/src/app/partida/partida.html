@@ -1,0 +1,134 @@
+<div class="pagina">
+  @if (dados(); as p) {
+    <a class="voltar" [routerLink]="linkVoltar()">
+      <span class="seta" aria-hidden="true"></span>
+      {{ jogador() ? 'Voltar ao perfil' : 'Início' }}
+    </a>
+
+    <header class="cabecalho" [class]="temJogador() ? resultado() : ''">
+      @if (p.mapa; as mapa) {
+        <span class="fundo" [style.background-image]="'url(' + fundoMapa(mapa.id) + ')'" aria-hidden="true"></span>
+      }
+      <div class="identidade">
+        <h1>{{ p.mapa?.nome ?? 'Competitivo' }}</h1>
+        <div class="chips">
+          <span class="chip resultado">{{ frasePlacar() }}</span>
+          <span class="discreto">{{ p.data | date: "d 'de' MMMM, HH:mm" }}</span>
+          <span class="discreto">{{ p.modo ?? 'Competitivo' }} · {{ p.duracaoEmMinutos }} min</span>
+        </div>
+      </div>
+    </header>
+
+    @if (euJogador(); as eu) {
+      <section class="card meu-resumo">
+        <div class="meu-agente">
+          @if (eu.agente; as agente) {
+            <img [src]="iconeAgente(agente.id)" [alt]="agente.nome" />
+          }
+          <div>
+            <div class="valor-grande">{{ eu.agente?.nome ?? 'Sem agente' }}</div>
+            <div class="discreto pequeno">{{ eu.riotId }} · {{ eu.rank.nome }}</div>
+          </div>
+        </div>
+        <div class="placas">
+          <div>
+            <strong>{{ eu.estatisticas.abates }} / {{ eu.estatisticas.mortes }} / {{ eu.estatisticas.assistencias }}</strong>
+            <span>abates / mortes / assistências</span>
+          </div>
+          <div><strong>{{ eu.estatisticas.kd | number: '1.1-2' }}</strong><span>abates por morte</span></div>
+          <div><strong>{{ eu.estatisticas.taxaHeadshot | percent: '1.0-0' }}</strong><span>tiros na cabeça</span></div>
+          <div><strong>{{ eu.estatisticas.danoPorRound | number: '1.0-0' }}</strong><span>dano por round</span></div>
+          <div><strong>{{ eu.estatisticas.pontuacaoPorRound | number: '1.0-0' }}</strong><span>pontos por round</span></div>
+        </div>
+      </section>
+    }
+
+    @if (p.rounds.length) {
+      <section class="card">
+        <h2 class="rotulo">Rounds <small>em verde, os que {{ temJogador() ? 'você levou' : 'o time azul levou' }}</small></h2>
+        <ol class="rounds">
+          @for (r of p.rounds; track r.numero) {
+            <li
+              [class.ganho]="r.vencedor === meuTime()"
+              [class.perdido]="r.vencedor !== meuTime()"
+              [title]="'Round ' + r.numero + ' · ' + r.desfecho"
+            >
+              {{ r.numero }}
+            </li>
+          }
+        </ol>
+      </section>
+    }
+
+    @for (t of times(); track t.time) {
+      <section class="card">
+        <div class="titulo-secao">
+          <h2 class="rotulo">{{ nomeTime(t.time) }}</h2>
+          <span class="chip" [class.pos]="t.resultado === 'Vitoria'" [class.neg]="t.resultado === 'Derrota'">
+            {{ t.rounds }} rounds
+          </span>
+        </div>
+
+        <div class="rolagem">
+          <table class="placar">
+            <thead>
+              <tr>
+                <th scope="col">Jogador</th>
+                <th scope="col" class="num" title="Pontos de combate por round">Pontos</th>
+                <th scope="col" class="num" title="Abates">K</th>
+                <th scope="col" class="num" title="Mortes">D</th>
+                <th scope="col" class="num" title="Assistências">A</th>
+                <th scope="col" class="num">KD</th>
+                <th scope="col" class="num">HS</th>
+                <th scope="col" class="num" title="Dano por round">Dano</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (j of t.jogadores; track j.puuid) {
+                <tr [class.eu]="j.puuid === euJogador()?.puuid">
+                  <th scope="row">
+                    @if (j.agente; as agente) {
+                      <img class="agente" [src]="iconeAgente(agente.id)" [alt]="agente.nome" loading="lazy" />
+                    }
+                    <span class="nome">
+                      <span class="riot-id" [class.anonimo]="j.anonimo">{{ j.riotId }}</span>
+                      <span class="discreto pequeno">{{ j.agente?.nome ?? '—' }} · nível {{ j.nivel }}</span>
+                    </span>
+                    <img class="rank" [src]="iconeRank(j.rank.tier)" [alt]="j.rank.nome" [title]="j.rank.nome" loading="lazy" />
+                  </th>
+                  <td class="num forte">{{ j.estatisticas.pontuacaoPorRound | number: '1.0-0' }}</td>
+                  <td class="num">{{ j.estatisticas.abates }}</td>
+                  <td class="num">{{ j.estatisticas.mortes }}</td>
+                  <td class="num">{{ j.estatisticas.assistencias }}</td>
+                  <td class="num">{{ j.estatisticas.kd | number: '1.1-2' }}</td>
+                  <td class="num">{{ j.estatisticas.taxaHeadshot | percent: '1.0-0' }}</td>
+                  <td class="num">{{ j.estatisticas.danoPorRound | number: '1.0-0' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    }
+
+    <p class="discreto pequeno rodape-nota">
+      K = abates · D = mortes · A = assistências · KD = abates por morte · HS = tiros na cabeça.
+      Pontos e dano são por round.
+    </p>
+  } @else if (partida.error()) {
+    <div class="estado">
+      <h1>Partida indisponível</h1>
+      <p class="discreto">{{ mensagemErro() }}</p>
+      <div class="acoes">
+        <button class="botao-secundario" type="button" (click)="partida.reload()">Tentar de novo</button>
+        <a class="botao-primario" [routerLink]="linkVoltar()">Voltar</a>
+      </div>
+    </div>
+  } @else {
+    <div class="esqueleto" aria-label="Carregando partida">
+      <div class="bloco cabeca"></div>
+      <div class="bloco alto"></div>
+      <div class="bloco alto"></div>
+    </div>
+  }
+</div>
