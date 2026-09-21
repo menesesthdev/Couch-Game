@@ -1,6 +1,6 @@
 {
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://valorant-coach-api.onrender.com" },
+    { "source": "/api/:path*", "destination": "https://valorant-coach-api.onrender.com/api/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

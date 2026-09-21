@@ -29,8 +29,7 @@ public class LojaController(
         {
             HttpOnly = true,
             IsEssential = true,
-            // Em HTTPS o frontend fica em outro domínio: só SameSite=None deixa o cookie ir junto.
-            SameSite = Request.IsHttps ? SameSiteMode.None : SameSiteMode.Lax,
+            SameSite = SameSiteMode.Lax,
             Secure = Request.IsHttps,
             Expires = sessao.ExpiraEm,
         });
@@ -59,11 +58,7 @@ public class LojaController(
     public IActionResult Desconectar()
     {
         sessoes.Remover(Request.Cookies[SessaoLojaStore.NomeCookie]);
-        Response.Cookies.Delete(SessaoLojaStore.NomeCookie, new CookieOptions
-        {
-            SameSite = Request.IsHttps ? SameSiteMode.None : SameSiteMode.Lax,
-            Secure = Request.IsHttps,
-        });
+        Response.Cookies.Delete(SessaoLojaStore.NomeCookie);
         return NoContent();
     }
 }

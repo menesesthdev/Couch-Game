@@ -17,7 +17,7 @@ builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ErrosHandler>();
 builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
     p.WithOrigins(builder.Configuration.GetSection("Cors:Origens").Get<string[]>() ?? [])
-        .AllowAnyHeader().AllowAnyMethod().AllowCredentials()));
+        .AllowAnyHeader().AllowAnyMethod()));
 
 // No Render o TLS termina no proxy: sem isto Request.IsHttps é falso e o cookie da loja sai sem Secure.
 builder.Services.Configure<ForwardedHeadersOptions>(o =>
