@@ -4,6 +4,7 @@ using ValorantCoach.Api.Loja;
 using ValorantCoach.Application;
 using ValorantCoach.Infrastructure;
 using ValorantCoach.Infrastructure.Persistencia;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,7 +17,15 @@ builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ErrosHandler>();
 builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
     p.WithOrigins(builder.Configuration.GetSection("Cors:Origens").Get<string[]>() ?? [])
-        .AllowAnyHeader().AllowAnyMethod()));
+        .AllowAnyHeader().AllowAnyMethod().AllowCredentials()));
+
+// No Render o TLS termina no proxy: sem isto Request.IsHttps é falso e o cookie da loja sai sem Secure.
+builder.Services.Configure<ForwardedHeadersOptions>(o =>
+{
+    o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    o.KnownIPNetworks.Clear();
+    o.KnownProxies.Clear();
+});
 
 builder.Services.AddSingleton<SessaoLojaStore>();
 builder.Services.AddApplication();
@@ -33,6 +42,7 @@ if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("Banco:M
     await scope.ServiceProvider.GetRequiredService<ValorantCoachDbContext>().Database.MigrateAsync();
 }
 
+app.UseForwardedHeaders();
 app.UseExceptionHandler();
 app.UseCors();
 app.MapControllers();
