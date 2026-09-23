@@ -257,6 +257,14 @@
   img { width: 30px; height: 30px; object-fit: contain; }
   .nome { font-weight: 600; font-size: 0.875rem; }
   .rr { font-size: 0.8125rem; color: var(--text-muted); }
+
+  // No celular o caminho sangra até a borda do card. Parar no respiro interno fazia o próximo
+  // degrau parecer cortado por engano, em vez de algo que continua se arrastar para o lado.
+  @media (max-width: 600px) {
+    margin: 0 -20px;
+    padding: 0 20px 4px;
+    scroll-padding: 0 20px;
+  }
 }
 
 .opcoes {

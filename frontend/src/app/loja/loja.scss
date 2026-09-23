@@ -179,6 +179,8 @@
   margin-top: 12px;
   padding: 0;
   border: 0;
+  // Link de texto puro dá uma faixa de ~20px para acertar com o dedo; no toque ganha altura.
+  @media (pointer: coarse) { padding: 8px 0; }
   background: none;
   color: var(--text-muted);
   font-size: 0.8125rem;
@@ -376,7 +378,7 @@
 
 .grade-skins {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
   gap: 12px;
 }
 

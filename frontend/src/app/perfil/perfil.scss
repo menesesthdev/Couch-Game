@@ -104,10 +104,13 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  // Item de grid tem min-width: auto, ou seja, piso no min-content: sem isto a coluna se recusa
+  // a encolher além da linha de partida mais larga e empurra a página para fora da tela.
+  min-width: 0;
 }
 
 @media (max-width: 860px) {
-  .grade { grid-template-columns: 1fr; }
+  .grade { grid-template-columns: minmax(0, 1fr); }
   .cabecalho { flex-wrap: wrap; }
   .cabecalho .rank-grande { width: 64px; height: 64px; }
 }
@@ -281,7 +284,16 @@
   }
 
   .nome-mapa { font-weight: 500; }
-  .resultado-texto { font-size: 0.8125rem; color: var(--text-muted); }
+
+  // "Derrota 9 – 13" quebrando em duas linhas deixava a linha da partida torta; o placar só
+  // faz sentido junto do resultado, então corta com reticências em vez de embrulhar.
+  .resultado-texto {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
   .kda {
     display: flex;
@@ -324,6 +336,16 @@
 
   @media (max-width: 520px) {
     .rank-apos { display: none; }
+
+    // Espremida entre o agente e o K/D/A, a coluna do mapa sobrava com "Der…". A barra colorida
+    // à esquerda já diz vitória ou derrota, então no celular fica só o placar, que é o que a
+    // palavra não conta. Junto disso, tudo encolhe um pouco para o nome do mapa caber inteiro.
+    .linha { gap: 10px; padding: 12px 8px; }
+    .resultado-texto .palavra { display: none; }
+    .agente-partida { width: 32px; height: 32px; }
+    .kda-numeros { font-size: 0.875rem; }
+    .variacao { min-width: 38px; }
+    .seta { display: none; }
   }
 }
 

@@ -78,8 +78,27 @@ import { BuscaJogador } from './busca/busca-jogador';
       max-width: 420px;
       margin-left: auto;
     }
-    @media (max-width: 520px) {
-      .topo { gap: 8px; padding: 0 12px; }
+    /* No celular a busca não cabe na mesma linha da logo e da nav: sobrava algo como 4px de
+       campo, sem espaço nem para o placeholder. Abaixo de 700px o header vira duas linhas
+       (logo + nav em cima, busca inteira embaixo), que é o que dá ao campo largura de verdade. */
+    @media (max-width: 700px) {
+      .topo {
+        flex-wrap: wrap;
+        align-content: center;
+        height: auto;
+        gap: 10px 12px;
+        padding: 10px 16px;
+      }
+      .marca img { height: 36px; }
+      .busca {
+        order: 3;
+        flex-basis: 100%;
+        max-width: none;
+        margin-left: 0;
+      }
+    }
+    @media (max-width: 380px) {
+      .topo { padding: 10px 12px; }
       .secoes a { padding: 7px 9px; }
     }
     .rodape {

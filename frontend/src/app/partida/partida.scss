@@ -104,7 +104,9 @@
 .placas {
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  // O min() impede que a coluna mínima (128px) estoure um contêiner mais estreito que ela:
+  // com overflow: hidden logo abaixo, o que estourava era cortado em vez de rolar.
+  grid-template-columns: repeat(auto-fit, minmax(min(128px, 100%), 1fr));
   gap: 2px;
   border-radius: var(--radius-sm);
   overflow: hidden;
@@ -130,6 +132,26 @@
     line-height: 1.3;
     color: var(--text-muted);
   }
+}
+
+// No celular o agente e as placas não dividem a mesma linha: lado a lado sobravam ~100px para
+// as placas, que viravam uma tira vertical ilegível. Empilhado, cada placa tem largura inteira.
+@media (max-width: 620px) {
+  .meu-resumo {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .meu-agente {
+    min-width: 0;
+
+    img { width: 48px; height: 48px; }
+  }
+
+  .placas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  .cabecalho { gap: 14px; padding: 20px 18px; }
 }
 
 .rotulo small {
@@ -175,9 +197,10 @@
 
 // Em telas estreitas o placar rola na horizontal em vez de espremer as colunas.
 .rolagem {
-  margin: 0 -22px;
-  padding: 0 22px;
+  margin: 0 calc(-1 * var(--card-pad-x));
+  padding: 0 var(--card-pad-x);
   overflow-x: auto;
+  overscroll-behavior-x: contain;
 }
 
 .placar {

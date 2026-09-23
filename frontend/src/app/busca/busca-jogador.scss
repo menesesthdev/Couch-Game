@@ -158,6 +158,18 @@ input {
   .meta { display: none; }
 }
 
+// Alvos de toque: o que se acerta com o mouse em 24px erra com o dedo. Vale pelo ponteiro,
+// não pela largura — um tablet grande também é dedo.
+@media (pointer: coarse) {
+  .regiao select { height: 40px; }
+  :host(.compacta) .regiao select { height: 36px; }
+
+  .sugestoes {
+    li { padding: 11px 10px; }
+    .remover { width: 32px; height: 32px; }
+  }
+}
+
 @keyframes surgir {
   from { opacity: 0; transform: translateY(-4px); }
 }
