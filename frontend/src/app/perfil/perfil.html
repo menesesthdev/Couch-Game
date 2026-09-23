@@ -187,7 +187,7 @@
                     <div class="mapa">
                       <span class="nome-mapa">{{ m.mapa?.nome ?? 'Competitivo' }}</span>
                       <span class="resultado-texto">
-                        {{ m.resultado === 'Vitoria' ? 'Vitória' : m.resultado === 'Derrota' ? 'Derrota' : 'Empate' }}
+                        <span class="palavra">{{ m.resultado === 'Vitoria' ? 'Vitória' : m.resultado === 'Derrota' ? 'Derrota' : 'Empate' }}</span>
                         {{ placar(m) }}
                       </span>
                     </div>
