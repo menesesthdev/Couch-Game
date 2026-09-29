@@ -1,4 +1,5 @@
 using ValorantCoach.Domain.Jogadores;
+using ValorantCoach.Domain.Miras;
 using Microsoft.EntityFrameworkCore;
 
 namespace ValorantCoach.Infrastructure.Persistencia;
@@ -7,6 +8,7 @@ public class ValorantCoachDbContext(DbContextOptions<ValorantCoachDbContext> opt
 {
     public DbSet<Jogador> Jogadores => Set<Jogador>();
     public DbSet<SnapshotRR> Snapshots => Set<SnapshotRR>();
+    public DbSet<Mira> Miras => Set<Mira>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -41,6 +43,21 @@ public class ValorantCoachDbContext(DbContextOptions<ValorantCoachDbContext> opt
                 r.Property(x => x.RR).HasColumnName("rr");
             });
             e.Ignore(s => s.TemHistorico);
+        });
+
+        modelBuilder.Entity<Mira>(e =>
+        {
+            e.ToTable("miras");
+            // A chave é o id da própria fonte: é ele que identifica a mira entre uma
+            // sincronização e outra, então não faz sentido gerar um id nosso por cima.
+            e.HasKey(m => m.Id);
+            e.Property(m => m.Id).ValueGeneratedNever();
+            e.Property(m => m.Nome).HasMaxLength(80).IsRequired();
+            e.Property(m => m.Codigo).HasMaxLength(400).IsRequired();
+            e.Property(m => m.Tipo).HasConversion<string>().HasMaxLength(20);
+            // A galeria abre filtrando por tipo e ordenando por cópias.
+            e.HasIndex(m => new { m.Tipo, m.Copias });
+            e.Ignore(m => m.Configuracao);
         });
     }
 }

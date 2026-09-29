@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ValorantCoach.Infrastructure.Persistencia;
@@ -12,9 +13,11 @@ using ValorantCoach.Infrastructure.Persistencia;
 namespace ValorantCoach.Infrastructure.Persistencia.Migrations
 {
     [DbContext(typeof(ValorantCoachDbContext))]
-    partial class ValorantCoachDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260923214355_Miras")]
+    partial class Miras
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
