@@ -16,3 +16,13 @@ export function iconeAgente(id: string): string {
 export function fundoMapa(id: string): string {
   return `https://media.valorant-api.com/maps/${id}/stylizedbackgroundimage.png`;
 }
+
+/**
+ * Mapa usado como "parede" atrás das miras da galeria: o Icebox é o que tem uma superfície
+ * grande e marcada no primeiro plano, que é o mais perto de uma parede em que se mira.
+ *
+ * É o mesmo para todas as miras de propósito. A galeria existe para comparar miras, e um
+ * fundo diferente em cada card mudaria o contraste de uma para outra sem motivo — fora que
+ * assim o navegador baixa uma imagem só.
+ */
+export const MAPA_PAREDE = 'e2ad5c54-4114-a870-9641-8ea21279579a';

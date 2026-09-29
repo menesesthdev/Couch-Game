@@ -126,14 +126,21 @@
   box-shadow: var(--card-shadow);
 }
 
-/// Fundo neutro e escuro atrás da mira: é onde ela é olhada de verdade no jogo, e sem ele
-/// uma mira branca sumiria no card.
+/// Cenário do próprio jogo atrás da mira: no fundo liso dava para ver o desenho, mas não se
+/// a mira se perde ou não sobre uma parede — que é justamente o que se quer saber antes de
+/// copiar o código. A arte já vem escura da Riot, então não leva filtro por cima.
+///
+/// A imagem entra ampliada e não em `cover`: o original é uma cena larga, e encolhê-la inteira
+/// num quadro de ~146px viraria borrão. Ampliada, sobra um pedaço de parede com textura legível.
 .palco {
   display: grid;
   place-items: center;
   padding: 18px;
   border-radius: var(--radius-sm);
-  background: radial-gradient(circle at 50% 45%, #33343a 0%, #232428 62%, #1b1c20 100%);
+  background-color: #1b1c20;
+  background-image: var(--parede);
+  background-size: auto 420%;
+  background-position: 62% 55%;
 
   app-mira-preview { max-width: 108px; }
 }
