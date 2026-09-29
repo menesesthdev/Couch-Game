@@ -13,7 +13,7 @@ Por enquanto, **apenas Valorant**. Não generalizar para outros jogos ainda.
 - Backend: .NET 10, ASP.NET Core (controllers), C#
 - Frontend: Angular 22 (nunca React) — standalone components, signals, zoneless
 - Banco: PostgreSQL, migrations com EF Core (Npgsql, nomes em snake_case via EFCore.NamingConventions)
-- Duas áreas distintas: **progressão** (anônima, qualquer jogador, é o coração do projeto) e **loja** (só a conta conectada). Nenhuma tela anônima pode mudar de comportamento por existir sessão
+- Três áreas distintas: **progressão** (anônima, qualquer jogador, é o coração do projeto), **miras** (anônima, galeria de miras de pro player) e **loja** (só a conta conectada). Nenhuma tela anônima pode mudar de comportamento por existir sessão
 
 O projeto se chamou **coachgame** até 20/09/2026. O código usa `ValorantCoach.*`, mas **a infraestrutura ainda usa `coachgame` de propósito**: nomes de container, volume e o banco/usuário/senha do Postgres. Renomear obrigaria a recriar o volume e perder os dados locais, sem ganho nenhum. A chave da connection string, essa sim, é `ValorantCoach` (em `appsettings.json`, no `DependencyInjection` e no `docker-compose.yml`). A chave `coachgame.buscas-recentes` no localStorage também fica, para não apagar as buscas recentes de quem já usou.
 
@@ -45,7 +45,8 @@ Nomeie entidades de domínio em português, como nos projetos anteriores (`Pacie
 - `ResumoPartida` — uma partida vista só pelo lado do jogador (agente, mapa, K/D/A, tiros, dano, rounds) já com o RR casado; `EstatisticasRecentes` agrega o período em KD, headshot, dano/round, pontos/round, sequência atual e agentes mais jogados
 - `PeriodoAnalise` — `Ultimas` (padrão, 20 partidas) ou `AtoAtual` (tudo dentro do ato em andamento)
 - `DetalhePartida` / `JogadorPartida` — scoreboard completo dos dois times, usado na página de partida
-- Value objects: `RiotId` (parse de `nome#tag` e link do tracker.gg), `Rank` (tier + RR), enum `Tier` (IDs iguais aos da HenrikDev: 3 = Ferro 1 … 27 = Radiante)
+- `Mira` — uma mira de pro player (nome, código, tipo, cópias); `ConfiguracaoMira` é o código decodificado, e `TipoMira` (`Cruz`, `Ponto`, `CruzComPonto`) é o que separa as coleções da galeria
+- Value objects: `RiotId` (parse de `nome#tag` e link do tracker.gg), `Rank` (tier + RR), enum `Tier` (IDs iguais aos da HenrikDev: 3 = Ferro 1 … 27 = Radiante), `CodigoMira` (parse do código de mira do Valorant)
 - `CalculadoraEstimativa` — serviço de domínio com a regra central abaixo
 
 ## Regra de negócio central: o cálculo da estimativa
@@ -80,12 +81,24 @@ Documentação: https://docs.henrikdev.xyz — API comunitária não oficial, n�
   - As duas fontes acima são casadas pelo `match_id` em `AnalisarDesempenho` — desempenho e RR vêm de endpoints diferentes. Partida sem entrada de RR (colocação) entra na lista mesmo assim, sem a variação.
   - `GET /valorant/v4/match/{region}/{matchid}` — scoreboard dos 10 jogadores, rounds e kills (~380 KB). Só é chamado quando alguém abre uma partida; partida encerrada não muda, então o cache é de 6 h (`CacheDetalhePartida`).
 - **Arma só existe dentro do detalhe da partida**, ou seja, "top armas" custaria uma requisição por partida. Por isso o card lateral não tem armas — decisão consciente, não esquecimento.
-- Endpoints da nossa API: `GET /api/jogadores/perfil?perfil=&regiao=`, `GET /api/jogadores/desempenho?perfil=&regiao=&periodo=`, `GET /api/jogadores/busca?q=&regiao=`, `GET /api/partidas/{regiao}/{matchId}`, `POST /api/estimativas`, `GET /api/calendario/ato-atual`, `GET /api/ranks`.
+- Endpoints da nossa API: `GET /api/jogadores/perfil?perfil=&regiao=`, `GET /api/jogadores/desempenho?perfil=&regiao=&periodo=`, `GET /api/jogadores/busca?q=&regiao=`, `GET /api/partidas/{regiao}/{matchId}`, `POST /api/estimativas`, `GET /api/calendario/ato-atual`, `GET /api/ranks`, `GET /api/miras?tipo=&q=`.
 - Varrer o ato inteiro pagina de 100 em 100 e para na primeira partida anterior ao início do ato, com teto de 3 páginas — o suficiente para qualquer jogador humano sem estourar o rate limit.
 - Antes de mexer em qualquer endpoint, conferir a doc: os paths mudam entre versões.
 - Resolver o Riot ID a partir do link colado: URLs do tracker.gg seguem o padrão `tracker.gg/valorant/profile/riot/nome%23tag/overview` — extrair `nome` e `tag` (decodificar `%23` como `#`), e também aceitar `nome#tag` digitado direto.
 - Tratar rate limit (HTTP 429) com backoff e cache — não fazer polling agressivo por jogador. Hoje: `AddStandardResilienceHandler` (retry exponencial respeitando `Retry-After`) + `IMemoryCache` de 10 min por perfil e por lista de partidas, 6 h por partida encerrada.
 - **Não é uma fundação com garantia de estabilidade.** Se o projeto crescer além de escala de portfólio, o caminho correto é migrar para a API oficial da Riot com RSO — não tentar contornar limites da HenrikDev nem fazer scraping próprio do cliente do jogo.
+
+## Miras de pro player (`/crosshair`)
+
+Galeria das miras que os profissionais usam, anônima como a progressão. O jogador acha a mira, copia o código e cola no Valorant.
+
+- **Fonte: vcrdb.net**, que não publica API. O site é Next.js e a home traz o catálogo embutido no payload de renderização, como objetos `{id, name, code, tags, copied, weeklyCopies}`. `VcrdbCatalogoMiras` lê de lá com regex e deixa o `JsonSerializer` decodificar os escapes.
+- **Só importamos `tags == "team"`** — as ~150 miras de pro/time. O resto do catálogo (~14 mil) é envio da comunidade e fica de fora **de propósito**: queremos a lista de pros, não um espelho do banco deles. O `robots.txt` deles libera tudo (`Allow: /`), e a UI dá crédito com link.
+- **Sincronização diária** (`SincronizacaoMirasService`, um `BackgroundService` no projeto Api) espelha para o Postgres: some o que saiu de lá, entra o que é novo. Também roda pouco depois da subida, porque hospedagem que hiberna derruba qualquer temporizador. Fonte vazia **não apaga** o que já existe — quase sempre significa que o formato do site mudou.
+- A leitura da galeria nunca fala com o vcrdb: vem do nosso banco. Se eles caírem, a aba continua de pé.
+- **`CodigoMira` decodifica o formato da Riot** (`0;P;c;5;h;0;0l;4;...`): pares chave;valor, com `P`/`A`/`S`/`NAME` trocando de seção — só o perfil primário interessa. Chave ausente fica no padrão do jogo (por isso `0` sozinho é válido); chave desconhecida é ignorada **mas o valor dela é consumido**, senão os pares seguintes saem deslocados. Cores 0–7 são predefinidas, 8 é a personalizada em `u`. Linhas usam prefixo `0` (internas) e `1` (externas); com `g` ligado, as verticais passam a usar `v` em vez de `l`.
+- **O tipo sai do próprio código, nunca de marcação manual**: `Ponto` (só o ponto central), `Cruz` (só linhas) e `CruzComPonto`. Linha ligada mas com comprimento, espessura ou opacidade zerados **não conta como linha** — é a aparência que decide a coleção. O tipo é gravado como coluna para o banco filtrar; a `ConfiguracaoMira` completa é decodificada sob demanda e não vai para o banco.
+- O DTO devolve a configuração **já decodificada**, então o parser existe num lugar só. A tela desenha em SVG nas unidades do jogo (`MiraPreview`), com contorno via `paint-order: stroke`.
 
 ## Loja pessoal (`/loja`)
 
@@ -107,7 +120,8 @@ Documentação: https://docs.henrikdev.xyz — API comunitária não oficial, n�
 
 **Layout de tracker** (busca → página de perfil com estatísticas), **visual inspirado no ChatGPT** apenas nos componentes: formato de botões, campos em pílula, fontes, cantos arredondados e sombras suaves. Não é uma interface de chat — não usar bolhas de mensagem nem layout conversacional.
 
-- Páginas: home (título + busca grande centralizada), perfil `/perfil/:regiao/:nome%23tag` (mesmo formato de URL do tracker.gg), partida `/partida/:regiao/:matchId?jogador=nome%23tag` e loja `/loja`, com busca compacta na barra do topo
+- Páginas: home (título + busca grande centralizada), perfil `/perfil/:regiao/:nome%23tag` (mesmo formato de URL do tracker.gg), partida `/partida/:regiao/:matchId?jogador=nome%23tag`, miras `/crosshair` e loja `/loja`, com busca compacta na barra do topo
+- Miras: cabeçalho com a instrução de onde colar o código no jogo, pílulas de coleção com a contagem de cada uma (Todas · Cruz · Ponto · Cruz com ponto), procura por nome e grade de cards. Cada card tem a mira desenhada sobre um palco escuro, o nome do pro, quantas cópias e "Copiar código", que vira "Copiado" por 2s. Filtro e procura acontecem no cliente: são ~150 miras, então ir ao servidor a cada tecla só somaria espera
 - Header tem a nav das duas áreas (Progressão · Loja) ao lado da logo
 - Home: título, busca, buscas recentes clicáveis e "como funciona" em 3 passos
 - Perfil: cabeçalho (ícone do rank, Riot ID, chips) → painel da meta em largura total (resposta, caminho de divisões, o que precisa para o prazo, simulações) → "Seu desempenho": lateral com rank atual, estatísticas de RR e o card "Seu jogo", e ao lado a lista de partidas com "mostrar todas"

@@ -15,6 +15,7 @@ import { BuscaJogador } from './busca/busca-jogador';
 
       <nav class="secoes">
         <a routerLink="/" routerLinkActive="ativo" [routerLinkActiveOptions]="{ exact: true }">Progressão</a>
+        <a routerLink="/crosshair" routerLinkActive="ativo">Miras</a>
         <a routerLink="/loja" routerLinkActive="ativo">Loja</a>
       </nav>
 
@@ -55,7 +56,7 @@ import { BuscaJogador } from './busca/busca-jogador';
       // Lockup deitado: fixa a altura e deixa a largura acompanhar a proporção.
       img { display: block; width: auto; height: 44px; }
     }
-    /* Duas áreas do app: progressão é anônima, loja exige conta. */
+    /* Áreas do app: progressão e miras são anônimas, loja exige conta. */
     .secoes {
       display: flex;
       gap: 4px;
@@ -123,6 +124,7 @@ export class App {
   protected readonly mostrarBusca = computed(() => {
     const url = this.url();
     const naHome = url === '/' || url === '';
-    return !naHome && !url.startsWith('/loja');
+    // A busca é ferramenta da progressão: na loja e na galeria de miras seria só ruído.
+    return !naHome && !url.startsWith('/loja') && !url.startsWith('/crosshair');
   });
 }

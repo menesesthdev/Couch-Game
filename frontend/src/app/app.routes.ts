@@ -9,5 +9,11 @@ export const routes: Routes = [
   { path: 'partida/:regiao/:matchId', loadComponent: () => import('./partida/partida').then((m) => m.PartidaPage) },
   // Única área que depende de conta conectada — separada do resto de propósito.
   { path: 'loja', loadComponent: () => import('./loja/loja').then((m) => m.LojaPage), title: 'Loja · Valorant Coach' },
+  // Galeria de miras de pro player: anônima, como a progressão.
+  {
+    path: 'crosshair',
+    loadComponent: () => import('./crosshair/crosshair').then((m) => m.CrosshairPage),
+    title: 'Miras · Valorant Coach',
+  },
   { path: '**', redirectTo: '' },
 ];

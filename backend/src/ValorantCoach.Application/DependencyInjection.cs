@@ -2,6 +2,7 @@ using ValorantCoach.Application.Calendario;
 using ValorantCoach.Application.Estimativas;
 using ValorantCoach.Application.Jogadores;
 using ValorantCoach.Application.Loja;
+using ValorantCoach.Application.Miras;
 using ValorantCoach.Application.Partidas;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -20,6 +21,8 @@ public static class DependencyInjection
         services.AddScoped<ObterDetalhePartida>();
         services.AddScoped<ConectarConta>();
         services.AddScoped<ObterMinhaLoja>();
+        services.AddScoped<ListarMiras>();
+        services.AddScoped<SincronizarMiras>();
         return services;
     }
 }

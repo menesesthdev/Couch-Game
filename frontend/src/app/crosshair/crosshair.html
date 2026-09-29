@@ -1,0 +1,95 @@
+<div class="pagina">
+  <header class="intro">
+    <h1>Miras de pro player</h1>
+    <p>
+      A mira que os profissionais estão usando. Clique em copiar e cole no Valorant em
+      <strong>Configurações → Mira → Importar código de perfil</strong>.
+    </p>
+  </header>
+
+  @if (miras.hasValue()) {
+    <div class="filtros">
+      <!-- As coleções: o jeito mais direto de chegar só nas de cruz ou só nas de ponto. -->
+      <div class="colecoes" role="tablist" aria-label="Coleções de mira">
+        @for (c of colecoes; track c.id) {
+          <button
+            type="button"
+            role="tab"
+            class="colecao"
+            [class.ativa]="colecao() === c.id"
+            [attr.aria-selected]="colecao() === c.id"
+            (click)="escolher(c.id)"
+          >
+            {{ c.nome }}
+            <span class="quantas">{{ contagens().get(c.id) }}</span>
+          </button>
+        }
+      </div>
+
+      <label class="procura">
+        <span class="sr-only">Procurar por jogador ou time</span>
+        <svg class="lupa" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" />
+          <path d="m16.5 16.5 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+        <input
+          type="search"
+          placeholder="Procurar por jogador ou time"
+          [value]="busca()"
+          (input)="aoDigitar($event)"
+        />
+      </label>
+    </div>
+
+    @if (visiveis().length) {
+      <ul class="grade">
+        @for (m of visiveis(); track m.id) {
+          <li class="mira">
+            <div class="palco">
+              <app-mira-preview [desenho]="m.desenho" [rotulo]="'Mira de ' + m.nome" />
+            </div>
+
+            <div class="identidade">
+              <span class="nome">{{ m.nome }}</span>
+              <span class="copias discreto">{{ m.copias | number: '1.0-0' }} cópias</span>
+            </div>
+
+            <!-- Só-leitura e fora do fluxo de foco: existe para o navegador sem área de
+                 transferência ter algo para selecionar quando o botão não consegue copiar. -->
+            <input class="codigo-oculto" [id]="'codigo-' + m.id" [value]="m.codigo" readonly tabindex="-1" />
+
+            <button type="button" class="botao-secundario copiar" (click)="copiar(m)">
+              @if (copiada() === m.id) {
+                Copiado
+              } @else {
+                Copiar código
+              }
+            </button>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="vazio discreto">Nenhuma mira encontrada para essa busca.</p>
+    }
+
+    <p class="credito discreto">
+      Lista mantida pela comunidade do
+      <a href="https://www.vcrdb.net/" target="_blank" rel="noopener noreferrer">vcrdb.net</a>,
+      sincronizada uma vez por dia.
+    </p>
+  } @else if (miras.error()) {
+    <div class="estado">
+      <h2>Não foi possível carregar as miras.</h2>
+      <p class="discreto">{{ miras.error()?.message }}</p>
+      <div class="acoes">
+        <button type="button" class="botao-primario" (click)="miras.reload()">Tentar de novo</button>
+      </div>
+    </div>
+  } @else {
+    <ul class="grade esqueleto" aria-hidden="true">
+      @for (i of [1, 2, 3, 4, 5, 6, 7, 8]; track i) {
+        <li class="bloco"></li>
+      }
+    </ul>
+  }
+</div>

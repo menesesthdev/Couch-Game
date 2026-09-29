@@ -3,6 +3,7 @@ using ValorantCoach.Infrastructure.HenrikDev;
 using ValorantCoach.Infrastructure.Persistencia;
 using ValorantCoach.Infrastructure.Riot;
 using ValorantCoach.Infrastructure.ValorantApi;
+using ValorantCoach.Infrastructure.Vcrdb;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +18,7 @@ public static class DependencyInjection
         services.AddDbContext<ValorantCoachDbContext>(o =>
             o.UseNpgsql(config.GetConnectionString("ValorantCoach")).UseSnakeCaseNamingConvention());
         services.AddScoped<IJogadorRepository, JogadorRepository>();
+        services.AddScoped<IMiraRepository, MiraRepository>();
 
         services.AddMemoryCache();
         services.Configure<HenrikDevOptions>(config.GetSection(HenrikDevOptions.Secao));
@@ -41,6 +43,17 @@ public static class DependencyInjection
 
         services.AddHttpClient<ICatalogoValorant, ValorantApiCatalogo>(http =>
                 http.BaseAddress = new Uri("https://valorant-api.com/"))
+            .AddStandardResilienceHandler();
+
+        // Catálogo de miras de pro player. Não é API publicada: é a home do vcrdb, lida uma vez por
+        // dia pela sincronização. User-Agent identificado porque é o mínimo ao ler site de terceiro.
+        services.AddHttpClient<ICatalogoMiras, VcrdbCatalogoMiras>(http =>
+            {
+                http.BaseAddress = new Uri("https://www.vcrdb.net/");
+                http.DefaultRequestHeaders.TryAddWithoutValidation(
+                    "User-Agent", "ValorantCoach/1.0 (+https://github.com/menesesthdev/couchgame)");
+                http.Timeout = TimeSpan.FromSeconds(30);
+            })
             .AddStandardResilienceHandler();
 
         // Endpoints do cliente do jogo: sem chave nossa, autenticados com o token do jogador.
