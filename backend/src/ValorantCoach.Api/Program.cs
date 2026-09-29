@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using ValorantCoach.Api;
 using ValorantCoach.Api.Loja;
+using ValorantCoach.Api.Miras;
 using ValorantCoach.Application;
 using ValorantCoach.Infrastructure;
 using ValorantCoach.Infrastructure.Persistencia;
@@ -28,6 +29,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(o =>
 });
 
 builder.Services.AddSingleton<SessaoLojaStore>();
+builder.Services.AddHostedService<SincronizacaoMirasService>();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
