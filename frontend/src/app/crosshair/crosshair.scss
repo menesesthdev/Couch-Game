@@ -132,17 +132,31 @@
 ///
 /// A imagem entra ampliada e não em `cover`: o original é uma cena larga, e encolhê-la inteira
 /// num quadro de ~146px viraria borrão. Ampliada, sobra um pedaço de parede com textura legível.
+/// É uma janela para o jogo, não uma miniatura: recorta o cenário em vez de encolhê-lo.
+/// `1920px auto` faz a arte (2560x1440) render em 1920 de largura, ou seja, no mesmo tamanho
+/// que teria numa tela 1080p — a mesma referência em que as medidas da mira são contadas.
+/// Assim parede e mira ficam na mesma escala, e o card mostra o que o jogador veria.
 .palco {
-  display: grid;
-  place-items: center;
-  padding: 18px;
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
   border-radius: var(--radius-sm);
   background-color: #1b1c20;
   background-image: var(--parede);
-  background-size: auto 420%;
-  background-position: 62% 55%;
+  background-size: 1920px auto;
+  // Recorte escolhido por ter textura e profundidade sem nenhum letreiro: a marcação "02" do
+  // contêiner, repetida igual nos 149 cards, puxava mais o olho do que a própria mira.
+  background-position: 77.5% 42%;
 
-  app-mira-preview { max-width: 108px; }
+  // Centralizado na mão porque a janela é menor que o quadro da mira: com `place-items: center`
+  // o navegador alinha ao início em vez de centralizar quando o filho transborda, e a mira saía
+  // deslocada para baixo e para a direita.
+  app-mira-preview {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
 }
 
 .identidade {
@@ -190,12 +204,6 @@
   }
 
   .mira { gap: 10px; padding: 12px; }
-
-  .palco {
-    padding: 12px;
-
-    app-mira-preview { max-width: 84px; }
-  }
 
   .copiar { padding: 0 10px; font-size: 0.8125rem; }
 }
