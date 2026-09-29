@@ -9,10 +9,12 @@ import {
   MinhaLoja,
   Estimativa,
   EstimativaRequest,
+  Mira,
   Periodo,
   Perfil,
   Regiao,
   SugestaoJogador,
+  TipoMira,
 } from './api.models';
 
 @Injectable({ providedIn: 'root' })
@@ -62,6 +64,16 @@ export class ValorantCoachApi {
 
   desconectarLoja(): Observable<void> {
     return this.http.post<void>('/api/loja/desconectar', {});
+  }
+
+  // ---- Miras: galeria de pro players, anônima como a progressão. Os dados vêm do nosso
+  // banco, alimentado por uma sincronização diária — a tela não fala com fonte externa. ----
+
+  listarMiras(tipo?: TipoMira, q?: string): Observable<Mira[]> {
+    let params = new HttpParams();
+    if (tipo) params = params.set('tipo', tipo);
+    if (q?.trim()) params = params.set('q', q.trim());
+    return this.http.get<Mira[]>('/api/miras', { params }).pipe(catchError(traduzirErro));
   }
 
   /** Ato em andamento, ou null entre atos / se o calendário estiver fora do ar. */

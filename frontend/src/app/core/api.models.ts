@@ -242,3 +242,37 @@ export interface MinhaLoja {
   restanteMercadoNoturnoEmSegundos: number | null;
   carteira: { valorantPoints: number; radianite: number; kingdom: number };
 }
+
+// ---- Miras (galeria de pro players) ----
+
+export type TipoMira = 'Cruz' | 'Ponto' | 'CruzComPonto';
+
+/** Um dos dois conjuntos de linhas, em unidades do próprio jogo. */
+export interface LinhasMira {
+  aparece: boolean;
+  comprimento: number;
+  /** As linhas de cima e de baixo podem ter tamanho próprio (comprimentos destravados no jogo). */
+  comprimentoVertical: number;
+  espessura: number;
+  deslocamento: number;
+  opacidade: number;
+}
+
+/** O código já decodificado pelo backend — a tela só desenha, não interpreta o formato da Riot. */
+export interface DesenhoMira {
+  cor: string;
+  contorno: { visivel: boolean; espessura: number; opacidade: number };
+  ponto: { aparece: boolean; espessura: number; opacidade: number };
+  internas: LinhasMira;
+  externas: LinhasMira;
+}
+
+export interface Mira {
+  id: number;
+  nome: string;
+  codigo: string;
+  tipo: TipoMira;
+  copias: number;
+  copiasNaSemana: number;
+  desenho: DesenhoMira;
+}
