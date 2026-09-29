@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { DecimalPipe } from '@angular/common';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Mira, TipoMira } from '../core/api.models';
+import { MAPA_PAREDE, fundoMapa } from '../core/midia';
 import { ValorantCoachApi } from '../core/valorant-coach-api';
 import { MiraPreview } from './mira-preview';
 
@@ -27,6 +28,9 @@ const COLECOES: Colecao[] = [
 })
 export class CrosshairPage {
   private readonly api = inject(ValorantCoachApi);
+
+  /** Cenário de fundo das prévias, para a mira ser vista como ela aparece dentro do jogo. */
+  protected readonly parede = `url(${fundoMapa(MAPA_PAREDE)})`;
 
   protected readonly colecoes = COLECOES;
   protected readonly colecao = signal<TipoMira | null>(null);

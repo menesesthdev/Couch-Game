@@ -1,4 +1,6 @@
-<div class="pagina">
+<!-- A parede vai numa variável CSS: é a mesma para todos os cards, então a URL aparece uma
+     vez só no DOM em vez de repetida 149 vezes. -->
+<div class="pagina" [style.--parede]="parede">
   <header class="intro">
     <h1>Miras de pro player</h1>
     <p>
